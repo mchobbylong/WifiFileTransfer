@@ -164,10 +164,10 @@ public class FileSenderActivity extends BaseActivity {
     }
 
     public void sendFile(View view) {
-        if (!Constants.AP_SSID.equals(WifiLManager.getConnectedSSID(this))) {
-            showToast("当前连接的Wifi并非文件接收端开启的Wifi热点，请重试");
-            return;
-        }
+        // if (!Constants.AP_SSID.equals(WifiLManager.getConnectedSSID(this))) {
+        //     showToast("当前连接的Wifi并非文件接收端开启的Wifi热点，请重试");
+        //     return;
+        // }
         navToChose();
     }
 
