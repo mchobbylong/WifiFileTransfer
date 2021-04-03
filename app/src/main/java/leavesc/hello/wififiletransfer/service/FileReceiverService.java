@@ -210,16 +210,27 @@ public class FileReceiverService extends IntentService {
                     exception = new Exception("从文件发送端发来的文件模型不包含MD5码");
                     return;
                 }
+
+                // TODO: 判断以前有没有传过相同的文件（用fileTransfer.md5）
+                //     如果以前传过，从记录里获取上次成功传输的位置（fileTransfer.transferProgress）
+                //     如果没有传过，设置 fileTransfer.transferProgress = 0
+                // 将 transferProgress 通过 socket 回传给发送端
+
                 String name = new File(fileTransfer.getFilePath()).getName();
                 //将文件存储至指定位置
+
+                // TODO: File 类换成 RandomAccessFile 类，并且用 file.seek() 指定续传的位置
                 file = new File(Environment.getExternalStorageDirectory() + "/" + name);
                 fileOutputStream = new FileOutputStream(file);
+
                 startCallback();
                 byte[] buf = new byte[512];
                 int len;
                 while ((len = inputStream.read(buf)) != -1) {
                     fileOutputStream.write(buf, 0, len);
                     total += len;
+
+                    // TODO: 记录当前的传输进度
                 }
                 Log.e(TAG, "文件接收成功");
                 stopCallback();

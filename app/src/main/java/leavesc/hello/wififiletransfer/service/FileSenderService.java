@@ -227,7 +227,12 @@ public class FileSenderService extends IntentService {
                 outputStream = socket.getOutputStream();
                 objectOutputStream = new ObjectOutputStream(outputStream);
                 objectOutputStream.writeObject(fileTransfer);
+
+                // TODO: 等待并接受来自接收端的 transferProgress 值
+
+                // TODO: 下面换成 RandomAccessFile 类，并用 .seek(transProgress) 指定继续发送的位置
                 inputStream = new FileInputStream(new File(fileTransfer.getFilePath()));
+
                 startCallback();
                 byte[] buf = new byte[512];
                 int len;

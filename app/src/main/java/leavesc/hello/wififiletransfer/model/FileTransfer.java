@@ -25,6 +25,9 @@ public class FileTransfer implements Serializable {
     //MD5码
     private String md5;
 
+    //当前传输进度
+    private int transferProgress;
+
     public FileTransfer() {
 
     }
