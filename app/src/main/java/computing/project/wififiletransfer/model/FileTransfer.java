@@ -1,4 +1,4 @@
-package leavesc.hello.wififiletransfer.model;
+package computing.project.wififiletransfer.model;
 
 import androidx.annotation.NonNull;
 

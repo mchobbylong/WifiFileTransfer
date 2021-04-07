@@ -1,4 +1,4 @@
-package leavesc.hello.wififiletransfer.service;
+package computing.project.wififiletransfer.service;
 
 import android.app.IntentService;
 import android.content.Context;
@@ -24,11 +24,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import leavesc.hello.wififiletransfer.BuildConfig;
-import leavesc.hello.wififiletransfer.common.Constants;
-import leavesc.hello.wififiletransfer.common.Logger;
-import leavesc.hello.wififiletransfer.common.Md5Util;
-import leavesc.hello.wififiletransfer.model.FileTransfer;
+import computing.project.wififiletransfer.BuildConfig;
+import computing.project.wififiletransfer.common.Constants;
+import computing.project.wififiletransfer.common.Logger;
+import computing.project.wififiletransfer.common.Md5Util;
+import computing.project.wififiletransfer.model.FileTransfer;
 
 /**
  * 作者：chenZY

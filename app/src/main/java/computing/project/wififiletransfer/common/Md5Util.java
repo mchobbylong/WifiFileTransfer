@@ -1,4 +1,4 @@
-package leavesc.hello.wififiletransfer.common;
+package computing.project.wififiletransfer.common;
 
 import java.io.File;
 import java.io.FileInputStream;

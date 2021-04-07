@@ -1,4 +1,4 @@
-package leavesc.hello.wififiletransfer;
+package computing.project.wififiletransfer;
 
 import android.app.ProgressDialog;
 import android.content.ComponentName;
@@ -19,9 +19,9 @@ import java.io.File;
 import java.text.MessageFormat;
 import java.util.Locale;
 
-import leavesc.hello.wififiletransfer.common.Constants;
-import leavesc.hello.wififiletransfer.model.FileTransfer;
-import leavesc.hello.wififiletransfer.service.FileReceiverService;
+import computing.project.wififiletransfer.common.Constants;
+import computing.project.wififiletransfer.model.FileTransfer;
+import computing.project.wififiletransfer.service.FileReceiverService;
 
 /**
  * 作者：chenZY

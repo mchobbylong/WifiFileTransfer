@@ -1,4 +1,4 @@
-package leavesc.hello.wififiletransfer;
+package computing.project.wififiletransfer;
 
 import android.Manifest;
 import android.content.pm.PackageManager;

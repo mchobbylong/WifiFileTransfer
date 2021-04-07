@@ -1,4 +1,4 @@
-package leavesc.hello.wififiletransfer.common;
+package computing.project.wififiletransfer.common;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
