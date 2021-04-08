@@ -4,23 +4,19 @@ import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import com.zhihu.matisse.Matisse;
-import com.zhihu.matisse.MimeType;
-import com.zhihu.matisse.internal.entity.CaptureStrategy;
+import me.rosuh.filepicker.config.FilePickerManager;
 
 import java.io.File;
 import java.text.MessageFormat;
 import java.util.List;
 
 import computing.project.wififiletransfer.common.Constants;
-import computing.project.wififiletransfer.common.Glide4Engine;
 import computing.project.wififiletransfer.manager.WifiLManager;
 import computing.project.wififiletransfer.model.FileTransfer;
 import computing.project.wififiletransfer.service.FileSenderService;
@@ -175,30 +171,24 @@ public class FileSenderActivity extends BaseActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CODE_CHOOSE_FILE && resultCode == RESULT_OK) {
-            List<String> strings = Matisse.obtainPathResult(data);
-            if (strings != null && !strings.isEmpty()) {
-                String path = strings.get(0);
+            List<String> paths = FilePickerManager.INSTANCE.obtainData();
+            if (paths != null && !paths.isEmpty()) {
+                String path = paths.get(0);
                 File file = new File(path);
                 if (file.exists()) {
                     FileTransfer fileTransfer = new FileTransfer(file);
                     Log.e(TAG, "待发送的文件：" + fileTransfer);
-                    FileSenderService.startActionTransfer(this, fileTransfer, WifiLManager.getHotspotIpAddress(this));
+                    FileSenderService.startActionTransfer(this, fileTransfer, "192.168.1.27");
                 }
             }
         }
     }
 
     private void navToChose() {
-        Matisse.from(this)
-                .choose(MimeType.ofImage())
-                .countable(true)
-                .showSingleMediaType(true)
+        FilePickerManager.INSTANCE
+                .from(this)
                 .maxSelectable(1)
-                .capture(false)
-                .captureStrategy(new CaptureStrategy(true, BuildConfig.APPLICATION_ID + ".fileprovider"))
-                .restrictOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
-                .thumbnailScale(0.70f)
-                .imageEngine(new Glide4Engine())
+                .showCheckBox(false)
                 .forResult(CODE_CHOOSE_FILE);
     }
 

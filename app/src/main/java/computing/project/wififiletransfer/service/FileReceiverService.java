@@ -197,6 +197,7 @@ public class FileReceiverService extends IntentService {
                 serverSocket = new ServerSocket();
                 serverSocket.setReuseAddress(true);
                 serverSocket.bind(new InetSocketAddress(Constants.PORT));
+                Log.d(TAG, "正在监听端口: " + Constants.PORT);
                 Socket client = serverSocket.accept();
                 Log.e(TAG, "客户端IP地址 : " + client.getInetAddress().getHostAddress());
                 inputStream = client.getInputStream();

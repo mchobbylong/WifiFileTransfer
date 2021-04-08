@@ -4,6 +4,8 @@ import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -112,7 +114,13 @@ public class FileReceiverActivity extends BaseActivity {
                                 + "\n" + "文件位置：" + fileTransfer.getFilePath());
                         progressDialog.setCancelable(true);
                         progressDialog.show();
-                        Glide.with(FileReceiverActivity.this).load(fileTransfer.getFilePath()).into(iv_image);
+
+                        // 如果这是图片，则调用 Gilde 显示图片
+                        BitmapFactory.Options bitmapOpts = new BitmapFactory.Options();
+                        bitmapOpts.inJustDecodeBounds = true;
+                        Bitmap _temp = BitmapFactory.decodeFile(fileTransfer.getFilePath(), bitmapOpts);
+                        if (bitmapOpts.outHeight != -1 && bitmapOpts.outWidth != -1)
+                            Glide.with(FileReceiverActivity.this).load(fileTransfer.getFilePath()).into(iv_image);
                     }
                 }
             });
