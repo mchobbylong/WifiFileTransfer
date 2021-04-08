@@ -187,8 +187,7 @@ public class FileSenderActivity extends BaseActivity {
     private void navToChose() {
         FilePickerManager.INSTANCE
                 .from(this)
-                .maxSelectable(1)
-                .showCheckBox(false)
+                .enableSingleChoice()
                 .forResult(CODE_CHOOSE_FILE);
     }
 
