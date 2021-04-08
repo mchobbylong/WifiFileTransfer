@@ -1,6 +1,7 @@
 package computing.project.wififiletransfer.model;
 
 import androidx.annotation.NonNull;
+import androidx.documentfile.provider.DocumentFile;
 
 import java.io.File;
 import java.io.Serializable;
@@ -32,10 +33,17 @@ public class FileTransfer implements Serializable {
 
     }
 
+    // TODO: Deprecate this
     public FileTransfer(File file) {
         this.fileName = file.getName();
         this.filePath = file.getPath();
         this.fileSize = file.length();
+    }
+
+    public FileTransfer(DocumentFile file) {
+        this.fileName = file.getName();
+        this.fileSize = file.length();
+        this.filePath = null;
     }
 
     public String getFileName() {

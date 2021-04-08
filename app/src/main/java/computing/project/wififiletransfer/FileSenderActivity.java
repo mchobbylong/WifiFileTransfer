@@ -4,23 +4,18 @@ import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import com.zhihu.matisse.Matisse;
-import com.zhihu.matisse.MimeType;
-import com.zhihu.matisse.internal.entity.CaptureStrategy;
+import androidx.documentfile.provider.DocumentFile;
 
 import java.io.File;
 import java.text.MessageFormat;
-import java.util.List;
 
 import computing.project.wififiletransfer.common.Constants;
-import computing.project.wififiletransfer.common.Glide4Engine;
 import computing.project.wififiletransfer.manager.WifiLManager;
 import computing.project.wififiletransfer.model.FileTransfer;
 import computing.project.wififiletransfer.service.FileSenderService;
@@ -174,32 +169,22 @@ public class FileSenderActivity extends BaseActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CODE_CHOOSE_FILE && resultCode == RESULT_OK) {
-            List<String> strings = Matisse.obtainPathResult(data);
-            if (strings != null && !strings.isEmpty()) {
-                String path = strings.get(0);
-                File file = new File(path);
-                if (file.exists()) {
-                    FileTransfer fileTransfer = new FileTransfer(file);
-                    Log.e(TAG, "待发送的文件：" + fileTransfer);
-                    FileSenderService.startActionTransfer(this, fileTransfer, WifiLManager.getHotspotIpAddress(this));
-                }
+        // 如果是选择文件的 Activity，并且选中了一个文件
+        if (requestCode == CODE_CHOOSE_FILE && resultCode == RESULT_OK && data != null) {
+            DocumentFile file = DocumentFile.fromSingleUri(this, data.getData());
+            if (file.exists()) {
+                FileTransfer fileTransfer = new FileTransfer(file);
+                Log.e(TAG, "待发送的文件：" + fileTransfer);
+                FileSenderService.startActionTransfer(this, fileTransfer, WifiLManager.getHotspotIpAddress(this));
             }
         }
     }
 
     private void navToChose() {
-        Matisse.from(this)
-                .choose(MimeType.ofImage())
-                .countable(true)
-                .showSingleMediaType(true)
-                .maxSelectable(1)
-                .capture(false)
-                .captureStrategy(new CaptureStrategy(true, BuildConfig.APPLICATION_ID + ".fileprovider"))
-                .restrictOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
-                .thumbnailScale(0.70f)
-                .imageEngine(new Glide4Engine())
-                .forResult(CODE_CHOOSE_FILE);
+        // 使用 DocumentsProvider 选取任意文件
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        startActivityForResult(intent, CODE_CHOOSE_FILE);
     }
-
 }
