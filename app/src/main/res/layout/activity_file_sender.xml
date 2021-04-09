@@ -18,6 +18,32 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/tv_serverIpHint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:gravity="start"
+        android:text="接收端 IP 地址："
+        android:textColor="@android:color/black"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@id/et_serverIp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/et_serverIp"
+        app:layout_constraintBottom_toBottomOf="@id/et_serverIp" />
+
+    <EditText
+        android:id="@+id/et_serverIp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="20dp"
+        android:gravity="start"
+        android:textColor="@android:color/black"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/tv_serverIpHint"
+        app:layout_constraintTop_toBottomOf="@id/tv_hint" />
+
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -26,6 +52,6 @@
         android:text="选择要发送的文件"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_hint" />
+        app:layout_constraintTop_toBottomOf="@id/et_serverIp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
