@@ -24,13 +24,13 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="20dp"
         android:gravity="start"
-        android:text="接收端 IP 地址："
+        android:text="IP address of receiver:"
         android:textColor="@android:color/black"
         android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@id/et_serverIp"
         app:layout_constraintEnd_toStartOf="@id/et_serverIp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/et_serverIp"
-        app:layout_constraintBottom_toBottomOf="@id/et_serverIp" />
+        app:layout_constraintTop_toTopOf="@id/et_serverIp" />
 
     <EditText
         android:id="@+id/et_serverIp"
@@ -45,12 +45,15 @@
         app:layout_constraintTop_toBottomOf="@id/tv_hint" />
 
     <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="244dp"
+        android:layout_height="52dp"
         android:layout_margin="20dp"
+        android:layout_marginTop="70dp"
+        android:backgroundTint="#A98BC34A"
         android:onClick="sendFile"
-        android:text="选择要发送的文件"
+        android:text="Select the file to send"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/et_serverIp" />
 

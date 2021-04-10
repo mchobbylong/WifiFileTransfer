@@ -6,26 +6,51 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/btn_checkPermission"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="20dp"
-        android:onClick="checkPermission"
-        android:text="检查权限"
-        app:layout_constraintBottom_toTopOf="@id/btn_sender"
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="260dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="50dp"
+        android:text="Multimedia Sharing"
+        android:textColor="#3F51B5"
+        android:textSize="30dip"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="155dp"
+        android:layout_height="116dp"
+        android:layout_marginTop="150dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/sharing1" />
+
+    <Button
+        android:id="@+id/btn_checkPermission"
+        android:layout_width="220dp"
+        android:layout_height="60dp"
+        android:layout_margin="20dp"
+        android:backgroundTint="#948BC34A"
+        android:onClick="checkPermission"
+        android:text="Check Permission"
+        app:layout_constraintBottom_toTopOf="@id/btn_sender"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.503"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView"
         app:layout_constraintVertical_chainStyle="packed" />
 
     <Button
         android:id="@+id/btn_sender"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_width="220dp"
+        android:layout_height="60dp"
         android:layout_margin="20dp"
+        android:backgroundTint="#7E03A9F4"
         android:onClick="startFileSenderActivity"
-        android:text="文件发送端"
+        android:text="File Sender"
         app:layout_constraintBottom_toTopOf="@id/btn_receiver"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -33,11 +58,12 @@
 
     <Button
         android:id="@+id/btn_receiver"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_width="220dp"
+        android:layout_height="60dp"
         android:layout_margin="20dp"
+        android:backgroundTint="#B43F51B5"
         android:onClick="startFileReceiverActivity"
-        android:text="文件接收端"
+        android:text="File Receiver"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
