@@ -37,7 +37,7 @@ public class FileSenderActivity extends BaseActivity {
 
     private ProgressDialog progressDialog;
 
-    private FileSenderService.OnSendProgressChangListener progressChangListener = new FileSenderService.OnSendProgressChangListener() {
+    private FileSenderService.OnSendProgressChangeListener progressChangListener = new FileSenderService.OnSendProgressChangeListener() {
 
         @Override
         public void onStartComputeMD5() {

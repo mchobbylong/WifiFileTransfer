@@ -46,7 +46,7 @@ public class FileSenderService extends IntentService {
 
     private InputStream inputStream;
 
-    private OnSendProgressChangListener progressChangListener;
+    private OnSendProgressChangeListener progressChangListener;
 
     private static final String ACTION_START_SEND = BuildConfig.APPLICATION_ID + ".service.action.startSend";
 
@@ -56,7 +56,7 @@ public class FileSenderService extends IntentService {
 
     private static final String TAG = "FileSenderService";
 
-    public interface OnSendProgressChangListener {
+    public interface OnSendProgressChangeListener {
 
         /**
          * 如果待发送的文件还没计算MD5码，则在开始计算MD5码时回调
@@ -312,7 +312,7 @@ public class FileSenderService extends IntentService {
         context.startService(intent);
     }
 
-    public void setProgressChangListener(OnSendProgressChangListener progressChangListener) {
+    public void setProgressChangListener(OnSendProgressChangeListener progressChangListener) {
         this.progressChangListener = progressChangListener;
     }
 

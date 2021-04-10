@@ -42,7 +42,7 @@ public class FileReceiverService extends IntentService {
 
     private static final String TAG = "FileReceiverService";
 
-    public interface OnReceiveProgressChangListener {
+    public interface OnReceiveProgressChangeListener {
 
         /**
          * 当传输进度发生变化时回调
@@ -87,7 +87,7 @@ public class FileReceiverService extends IntentService {
 
     private FileOutputStream fileOutputStream;
 
-    private OnReceiveProgressChangListener progressChangListener;
+    private OnReceiveProgressChangeListener progressChangListener;
 
     public class MyBinder extends Binder {
         public FileReceiverService getService() {
@@ -329,7 +329,7 @@ public class FileReceiverService extends IntentService {
         context.startService(intent);
     }
 
-    public void setProgressChangListener(OnReceiveProgressChangListener progressChangListener) {
+    public void setProgressChangListener(OnReceiveProgressChangeListener progressChangListener) {
         this.progressChangListener = progressChangListener;
     }
 

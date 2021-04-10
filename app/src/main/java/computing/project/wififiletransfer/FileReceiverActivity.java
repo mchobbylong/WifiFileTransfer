@@ -2,6 +2,7 @@ package computing.project.wififiletransfer;
 
 import android.app.ProgressDialog;
 import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
@@ -14,11 +15,17 @@ import android.util.Log;
 import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
 import java.io.File;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.text.MessageFormat;
+import java.util.Enumeration;
 import java.util.Locale;
 
 import computing.project.wififiletransfer.common.Constants;
@@ -58,7 +65,27 @@ public class FileReceiverActivity extends BaseActivity {
         }
     };
 
-    private FileReceiverService.OnReceiveProgressChangListener progressChangListener = new FileReceiverService.OnReceiveProgressChangListener() {
+
+    public static String getIpAddressString() {
+        try {
+            for (Enumeration<NetworkInterface> enNetI = NetworkInterface
+                    .getNetworkInterfaces(); enNetI.hasMoreElements(); ) {
+                NetworkInterface netI = enNetI.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = netI
+                        .getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (inetAddress instanceof Inet4Address && !inetAddress.isLoopbackAddress()) {
+                        return inetAddress.getHostAddress();
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+        return "0.0.0.0";
+    }
+
+    private FileReceiverService.OnReceiveProgressChangeListener progressChangListener = new FileReceiverService.OnReceiveProgressChangeListener() {
 
         private FileTransfer originFileTransfer;
 
@@ -81,6 +108,29 @@ public class FileReceiverActivity extends BaseActivity {
                         }
                         progressDialog.setProgress(progress);
                         progressDialog.setCancelable(true);
+                        progressDialog.setButton(DialogInterface.BUTTON_POSITIVE, "继续", new DialogInterface.OnClickListener() {
+
+                            @Override
+
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                // TODO: Resume the transmission
+
+                            }
+
+                        });
+
+                        progressDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "暂停", new DialogInterface.OnClickListener() {
+
+                            @Override
+
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                // TODO: Pause the transmission
+
+                            }
+
+                        });
                         progressDialog.show();
                     }
                 }
@@ -159,7 +209,7 @@ public class FileReceiverActivity extends BaseActivity {
         setTitle("接收文件");
         iv_image = findViewById(R.id.iv_image);
         TextView tv_hint = findViewById(R.id.tv_hint);
-        tv_hint.setText(MessageFormat.format("接收文件前，需要先主动开启Wifi热点让文件发送端连接\n热点名：{0}\n密码：{1}", Constants.AP_SSID, Constants.AP_PASSWORD));
+        tv_hint.setText(MessageFormat.format("本机IP地址：{0}\n接收文件前，需要先主动开启Wifi热点让文件发送端连接\n热点名：{1}\n密码：{2}", getIpAddressString(), Constants.AP_SSID, Constants.AP_PASSWORD));
         progressDialog = new ProgressDialog(this);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         progressDialog.setCancelable(false);
