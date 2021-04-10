@@ -171,6 +171,8 @@ public class FileReceiverActivity extends BaseActivity {
                         Bitmap _temp = BitmapFactory.decodeFile(fileTransfer.getFilePath(), bitmapOpts);
                         if (bitmapOpts.outHeight != -1 && bitmapOpts.outWidth != -1)
                             Glide.with(FileReceiverActivity.this).load(fileTransfer.getFilePath()).into(iv_image);
+                        else
+                            OpenFileUtil.openFileByPath(FileReceiverActivity.this, fileTransfer.getFilePath());
                     }
                 }
             });
