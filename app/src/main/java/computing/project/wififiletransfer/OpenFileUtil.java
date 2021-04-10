@@ -9,6 +9,8 @@ import android.os.StrictMode;
 import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
+import androidx.core.content.FileProvider;
+
 import java.io.File;
 
 public class OpenFileUtil {
@@ -37,15 +39,9 @@ public class OpenFileUtil {
             File out = new File(path);
             Uri fileURI;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                // 由于7.0以后文件访问权限，可以通过定义xml在androidmanifest中申请，也可以直接跳过权限
-                // 通过定义xml在androidmanifest中申请
-//                fileURI = FileProvider.getUriForFile(context,
-//                        "com.lonelypluto.zyw_test.provider",
-//                        out);
-                // 直接跳过权限
-                StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
-                StrictMode.setVmPolicy(builder.build());
-                fileURI = Uri.fromFile(out);
+            fileURI = FileProvider.getUriForFile(context,
+                    "computing.project.wififiletransfer.fileprovider",
+                    out);
             }else{
                 fileURI = Uri.fromFile(out);
             }
