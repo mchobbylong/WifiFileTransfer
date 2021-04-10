@@ -187,6 +187,17 @@ public class FileReceiverService extends IntentService {
         }
     }
 
+    // 用于判断是否暂停
+    private boolean pause = false;
+
+    public void setPause() {
+        pause = true;
+    }
+
+    public void setResume() {
+        pause = false;
+    }
+
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null && ACTION_START_RECEIVE.equals(intent.getAction())) {
@@ -228,9 +239,9 @@ public class FileReceiverService extends IntentService {
                 byte[] buf = new byte[512];
                 int len;
                 while ((len = inputStream.read(buf)) != -1) {
+                    while (pause);
                     fileOutputStream.write(buf, 0, len);
                     total += len;
-
                     // TODO: 记录当前的传输进度
                 }
                 Log.e(TAG, "文件接收成功");

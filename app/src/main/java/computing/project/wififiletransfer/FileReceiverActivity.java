@@ -115,7 +115,7 @@ public class FileReceiverActivity extends BaseActivity {
                             public void onClick(DialogInterface dialog, int which) {
 
                                 // TODO: Resume the transmission
-
+                                fileReceiverService.setResume();
                             }
 
                         });
@@ -127,7 +127,7 @@ public class FileReceiverActivity extends BaseActivity {
                             public void onClick(DialogInterface dialog, int which) {
 
                                 // TODO: Pause the transmission
-
+                                fileReceiverService.setPause();
                             }
 
                         });
@@ -209,7 +209,7 @@ public class FileReceiverActivity extends BaseActivity {
         setTitle("接收文件");
         iv_image = findViewById(R.id.iv_image);
         TextView tv_hint = findViewById(R.id.tv_hint);
-        tv_hint.setText(MessageFormat.format("本机IP地址：{0}\n接收文件前，需要先主动开启Wifi热点让文件发送端连接\n热点名：{1}\n密码：{2}", getIpAddressString(), Constants.AP_SSID, Constants.AP_PASSWORD));
+        tv_hint.setText(MessageFormat.format("本机IP地址：{0}", getIpAddressString()));
         progressDialog = new ProgressDialog(this);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         progressDialog.setCancelable(false);

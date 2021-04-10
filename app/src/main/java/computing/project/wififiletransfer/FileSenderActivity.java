@@ -139,7 +139,6 @@ public class FileSenderActivity extends BaseActivity {
     private void initView() {
         setTitle("发送文件");
         TextView tv_hint = findViewById(R.id.tv_hint);
-        tv_hint.setText(MessageFormat.format("在发送文件前需要先连上文件接收端开启的Wifi热点\n热点名：{0} \n密码：{1}", Constants.AP_SSID, Constants.AP_PASSWORD));
         // 初始化接收端 IP 地址为当前连接 Wifi 的网关（假设连上了接收端开的热点）
         TextView serverIp = findViewById(R.id.et_serverIp);
         serverIp.setText(WifiLManager.getHotspotIpAddress(this));
