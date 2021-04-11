@@ -24,12 +24,7 @@ import computing.project.wififiletransfer.manager.WifiLManager;
 import computing.project.wififiletransfer.model.FileTransfer;
 import computing.project.wififiletransfer.service.FileReceiverTask;
 
-/**
- * 作者：chenZY
- * 时间：2018/4/3 14:53
- * 描述：https://www.jianshu.com/u/9df45b87cfdf
- * https://github.com/leavesC
- */
+
 public class FileReceiverActivity extends BaseActivity {
 
     private static final String TAG = "ReceiverActivity";
@@ -71,18 +66,18 @@ public class FileReceiverActivity extends BaseActivity {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setTitle("正在接收的文件： " + originFileTransfer.getFileName());
+                        progressDialog.setTitle("Files being received： " + originFileTransfer.getFileName());
                         if (progress != 100) {
-                            progressDialog.setMessage("原始文件的MD5码是：" + originFileTransfer.getMd5()
-                                    + "\n\n" + "总的传输时间：" + totalTime + " 秒"
-                                    + "\n\n" + "瞬时-传输速率：" + (int) instantSpeed + " Kb/s"
-                                    + "\n" + "瞬时-预估的剩余完成时间：" + instantRemainingTime + " 秒"
-                                    + "\n\n" + "平均-传输速率：" + (int) averageSpeed + " Kb/s"
-                                    + "\n" + "平均-预估的剩余完成时间：" + averageRemainingTime + " 秒"
+                            progressDialog.setMessage("The MD5 code of the original file is：" + originFileTransfer.getMd5()
+                                    + "\n\n" + "Total transmission time：" + totalTime + " seconds"
+                                    + "\n\n" + "Instantaneous transmission rate：" + (int) instantSpeed + " Kb/s"
+                                    + "\n" + "Instantaneous - estimated remaining completion time：" + instantRemainingTime + " seconds"
+                                    + "\n\n" + "Average transmission rate：" + (int) averageSpeed + " Kb/s"
+                                    + "\n" + "Average - estimated remaining completion time：" + averageRemainingTime + " seconds"
                             );
                         }
                         progressDialog.setCancelable(true);
-                        progressDialog.setButton(DialogInterface.BUTTON_POSITIVE, "继续", new DialogInterface.OnClickListener() {
+                        progressDialog.setButton(DialogInterface.BUTTON_POSITIVE, "continue", new DialogInterface.OnClickListener() {
 
                             @Override
 
@@ -93,7 +88,7 @@ public class FileReceiverActivity extends BaseActivity {
 
                         });
 
-                        progressDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "暂停", new DialogInterface.OnClickListener() {
+                        progressDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "suspend", new DialogInterface.OnClickListener() {
 
                             @Override
 
@@ -116,8 +111,8 @@ public class FileReceiverActivity extends BaseActivity {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setTitle("传输结束，正在计算本地文件的MD5码以校验文件完整性");
-                        progressDialog.setMessage("原始文件的MD5码是：" + originFileTransfer.getMd5());
+                        progressDialog.setTitle("The transmission is over. Calculating MD5 code of local file to verify file integrity");
+                        progressDialog.setMessage("The MD5 code of the original file is:" + originFileTransfer.getMd5());
                         progressDialog.setCancelable(false);
                         progressDialog.show();
                     }
@@ -131,10 +126,10 @@ public class FileReceiverActivity extends BaseActivity {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setTitle("传输成功");
-                        progressDialog.setMessage("原始文件的MD5码是：" + originFileTransfer.getMd5()
-                                + "\n" + "本地文件的MD5码是：" + fileTransfer.getMd5()
-                                + "\n" + "文件位置：" + fileTransfer.getFilePath());
+                        progressDialog.setTitle("Transmission successful");
+                        progressDialog.setMessage("The MD5 code of the original file is：" + originFileTransfer.getMd5()
+                                + "\n" + "The MD5 code of the local file is：" + fileTransfer.getMd5()
+                                + "\n" + "file location：" + fileTransfer.getFilePath());
                         progressDialog.setCancelable(true);
                         progressDialog.show();
                         progressDialog.setProgress(100);
@@ -158,14 +153,14 @@ public class FileReceiverActivity extends BaseActivity {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setTitle("传输失败");
+                        progressDialog.setTitle("Transmission failed");
                         if (fileTransfer == null || originFileTransfer == null)
-                            progressDialog.setMessage("异常信息：" + e.getMessage());
+                            progressDialog.setMessage("Abnormal information：" + e.getMessage());
                         else
-                            progressDialog.setMessage("原始文件的MD5码是：" + originFileTransfer.getMd5()
-                                    + "\n" + "本地文件的MD5码是：" + fileTransfer.getMd5()
-                                    + "\n" + "文件位置：" + fileTransfer.getFilePath()
-                                    + "\n" + "异常信息：" + e.getMessage());
+                            progressDialog.setMessage("The MD5 code of the original file is：" + originFileTransfer.getMd5()
+                                    + "\n" + "The MD5 code of the local file is：" + fileTransfer.getMd5()
+                                    + "\n" + "file location：" + fileTransfer.getFilePath()
+                                    + "\n" + "abnormal information：" + e.getMessage());
                         progressDialog.setCancelable(true);
                         progressDialog.show();
                     }
@@ -186,15 +181,15 @@ public class FileReceiverActivity extends BaseActivity {
     }
 
     private void initView() {
-        setTitle("接收文件");
+        setTitle("Receive files");
         iv_image = findViewById(R.id.iv_image);
         TextView tv_hint = findViewById(R.id.tv_hint);
-        tv_hint.setText(MessageFormat.format("本机IP地址：{0}", WifiLManager.getLocalIpAddress(this)));
+        tv_hint.setText(MessageFormat.format("Local IP address：{0}", WifiLManager.getLocalIpAddress(this)));
         progressDialog = new ProgressDialog(this);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         progressDialog.setCancelable(false);
         progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.setTitle("正在接收文件");
+        progressDialog.setTitle("File being received");
         progressDialog.setMax(100);
     }
 
@@ -202,7 +197,7 @@ public class FileReceiverActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (taskFuture != null) {
-            Log.i(TAG, "正在取消接收端线程");
+            Log.i(TAG, "Canceling receiving thread");
             taskFuture.cancel(true);
         }
         if (progressDialog != null && progressDialog.isShowing()) {

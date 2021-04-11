@@ -10,7 +10,7 @@
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
+        android:layout_margin="50dp"
         android:text="Multimedia Sharing"
         android:textColor="#3F51B5"
         android:textSize="30dip"
@@ -24,32 +24,19 @@
         android:id="@+id/imageView"
         android:layout_width="165dp"
         android:layout_height="120dp"
-        android:layout_margin="20dp"
-        app:layout_constraintTop_toBottomOf="@+id/textView2"
-        app:layout_constraintBottom_toTopOf="@+id/btn_checkPermission"
+        android:layout_margin="50dp"
+        app:layout_constraintBottom_toTopOf="@+id/btn_sender"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView2"
         app:srcCompat="@drawable/sharing1" />
 
-    <Button
-        android:id="@+id/btn_checkPermission"
-        android:layout_width="220dp"
-        android:layout_height="60dp"
-        android:layout_margin="20dp"
-        android:backgroundTint="#948BC34A"
-        android:onClick="checkPermission"
-        android:text="Check Permission"
-        app:layout_constraintBottom_toTopOf="@id/btn_sender"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/imageView" />
 
     <Button
         android:id="@+id/btn_sender"
         android:layout_width="220dp"
         android:layout_height="60dp"
-        android:layout_margin="20dp"
+        android:layout_margin="50dp"
         android:backgroundTint="#7E03A9F4"
         android:onClick="startFileSenderActivity"
         android:text="File Sender"
@@ -57,19 +44,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_checkPermission" />
+        app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
     <Button
         android:id="@+id/btn_receiver"
         android:layout_width="220dp"
         android:layout_height="60dp"
-        android:layout_margin="20dp"
+        android:layout_margin="50dp"
         android:backgroundTint="#B43F51B5"
         android:onClick="startFileReceiverActivity"
         android:text="File Receiver"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btn_sender" />
 

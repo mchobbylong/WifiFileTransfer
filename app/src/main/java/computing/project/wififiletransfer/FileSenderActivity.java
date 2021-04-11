@@ -19,12 +19,6 @@ import computing.project.wififiletransfer.model.FileTransfer;
 import computing.project.wififiletransfer.common.OnTransferChangeListener;
 import computing.project.wififiletransfer.service.FileSenderTask;
 
-/**
- * 作者：chenZY
- * 时间：2018/4/3 14:53
- * 描述：https://www.jianshu.com/u/9df45b87cfdf
- * https://github.com/leavesC
- */
 public class FileSenderActivity extends BaseActivity {
 
     public static final String TAG = "FileSenderActivity";
@@ -45,8 +39,8 @@ public class FileSenderActivity extends BaseActivity {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setTitle("发送文件");
-                        progressDialog.setMessage("正在计算文件的MD5码");
+                        progressDialog.setTitle("send files");
+                        progressDialog.setMessage("Calculating MD5 code of file");
                         progressDialog.setCancelable(false);
                         progressDialog.show();
                         progressDialog.setProgress(0);
@@ -62,14 +56,14 @@ public class FileSenderActivity extends BaseActivity {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setTitle("正在发送文件： " + fileTransfer.getFileName());
+                        progressDialog.setTitle("Sending file： " + fileTransfer.getFileName());
                         if (progress != 100) {
-                            progressDialog.setMessage("文件的MD5码：" + fileTransfer.getMd5()
-                                    + "\n\n" + "总的传输时间：" + totalTime + " 秒"
-                                    + "\n\n" + "瞬时-传输速率：" + (int) instantSpeed + " Kb/s"
-                                    + "\n" + "瞬时-预估的剩余完成时间：" + instantRemainingTime + " 秒"
-                                    + "\n\n" + "平均-传输速率：" + (int) averageSpeed + " Kb/s"
-                                    + "\n" + "平均-预估的剩余完成时间：" + averageRemainingTime + " 秒"
+                            progressDialog.setMessage("MD5 code of file：" + fileTransfer.getMd5()
+                                    + "\n\n" + "Total transmission time：" + totalTime + " seconds"
+                                    + "\n\n" + "Instantaneous transmission rate：" + (int) instantSpeed + " Kb/s"
+                                    + "\n" + "Instantaneous - estimated remaining completion time：" + instantRemainingTime + " seconds"
+                                    + "\n\n" + "Average transmission rate：" + (int) averageSpeed + " Kb/s"
+                                    + "\n" + "Average - estimated remaining completion time：" + averageRemainingTime + " seconds"
                             );
                         }
                         progressDialog.setCancelable(true);
@@ -87,8 +81,8 @@ public class FileSenderActivity extends BaseActivity {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setTitle("文件发送成功");
-                        progressDialog.setMessage("已成功发送文件：" + fileTransfer.getFileName());
+                        progressDialog.setTitle("File sent successfully");
+                        progressDialog.setMessage("File sent successfully：" + fileTransfer.getFileName());
                         progressDialog.setCancelable(true);
                         progressDialog.show();
                         progressDialog.setProgress(100);
@@ -104,8 +98,8 @@ public class FileSenderActivity extends BaseActivity {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setTitle("文件发送失败");
-                        progressDialog.setMessage("异常信息： " + e.getMessage());
+                        progressDialog.setTitle("Failed to send file");
+                        progressDialog.setMessage("Abnormal information： " + e.getMessage());
                         progressDialog.setCancelable(true);
                         progressDialog.show();
                         progressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setVisibility(View.INVISIBLE);
@@ -123,7 +117,7 @@ public class FileSenderActivity extends BaseActivity {
     }
 
     private void initView() {
-        setTitle("发送文件");
+        setTitle("send files");
         TextView tv_hint = findViewById(R.id.tv_hint);
         // 初始化接收端 IP 地址为当前连接 Wifi 的网关（假设连上了接收端开的热点）
         TextView serverIp = findViewById(R.id.et_serverIp);
@@ -135,11 +129,11 @@ public class FileSenderActivity extends BaseActivity {
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         progressDialog.setCancelable(false);
         progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.setTitle("发送文件");
+        progressDialog.setTitle("send files");
         progressDialog.setMax(100);
         progressDialog.setIndeterminate(false);
         // 添加取消按钮
-        progressDialog.setButton(DialogInterface.BUTTON_POSITIVE, "取消", new DialogInterface.OnClickListener() {
+        progressDialog.setButton(DialogInterface.BUTTON_POSITIVE, "cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if (taskFuture != null)
@@ -178,7 +172,7 @@ public class FileSenderActivity extends BaseActivity {
                 File file = new File(path);
                 if (file.exists()) {
                     FileTransfer fileTransfer = new FileTransfer(file);
-                    Log.e(TAG, "待发送的文件：" + fileTransfer);
+                    Log.e(TAG, "Files to be sent：" + fileTransfer);
                     TextView tv = findViewById(R.id.et_serverIp);
                     task = new FileSenderTask(fileTransfer, tv.getText().toString(), onTransferChangeListener);
                     taskFuture = ((CoreApplication) this.getApplication()).threadPool.submit(task);
