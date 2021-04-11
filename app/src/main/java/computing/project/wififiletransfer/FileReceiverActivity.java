@@ -62,11 +62,11 @@ public class FileReceiverActivity extends BaseActivity {
 
     private OnTransferChangeListener onTransferChangeListener = new OnTransferChangeListener() {
 
-        private FileTransfer originFileTransfer;
+        private FileTransfer originFileTransfer = null;
 
         @Override
         public void onProgressChanged(final FileTransfer fileTransfer, final long totalTime, final int progress, final double instantSpeed, final long instantRemainingTime, final double averageSpeed, final long averageRemainingTime) {
-            this.originFileTransfer = fileTransfer;
+            this.originFileTransfer = fileTransfer.clone();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -81,7 +81,6 @@ public class FileReceiverActivity extends BaseActivity {
                                     + "\n" + "平均-预估的剩余完成时间：" + averageRemainingTime + " 秒"
                             );
                         }
-                        progressDialog.setProgress(progress);
                         progressDialog.setCancelable(true);
                         progressDialog.setButton(DialogInterface.BUTTON_POSITIVE, "继续", new DialogInterface.OnClickListener() {
 
@@ -105,6 +104,7 @@ public class FileReceiverActivity extends BaseActivity {
 
                         });
                         progressDialog.show();
+                        progressDialog.setProgress(progress);
                     }
                 }
             });
@@ -131,13 +131,13 @@ public class FileReceiverActivity extends BaseActivity {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setProgress(100);
                         progressDialog.setTitle("传输成功");
                         progressDialog.setMessage("原始文件的MD5码是：" + originFileTransfer.getMd5()
                                 + "\n" + "本地文件的MD5码是：" + fileTransfer.getMd5()
                                 + "\n" + "文件位置：" + fileTransfer.getFilePath());
                         progressDialog.setCancelable(true);
                         progressDialog.show();
+                        progressDialog.setProgress(100);
 
                         // 如果这是图片，则调用 Glide 显示图片
                         BitmapFactory.Options bitmapOpts = new BitmapFactory.Options();
@@ -159,10 +159,13 @@ public class FileReceiverActivity extends BaseActivity {
                 public void run() {
                     if (isCreated()) {
                         progressDialog.setTitle("传输失败");
-                        progressDialog.setMessage("原始文件的MD5码是：" + originFileTransfer.getMd5()
-                                + "\n" + "本地文件的MD5码是：" + fileTransfer.getMd5()
-                                + "\n" + "文件位置：" + fileTransfer.getFilePath()
-                                + "\n" + "异常信息：" + e.getMessage());
+                        if (fileTransfer == null || originFileTransfer == null)
+                            progressDialog.setMessage("异常信息：" + e.getMessage());
+                        else
+                            progressDialog.setMessage("原始文件的MD5码是：" + originFileTransfer.getMd5()
+                                    + "\n" + "本地文件的MD5码是：" + fileTransfer.getMd5()
+                                    + "\n" + "文件位置：" + fileTransfer.getFilePath()
+                                    + "\n" + "异常信息：" + e.getMessage());
                         progressDialog.setCancelable(true);
                         progressDialog.show();
                     }
@@ -178,7 +181,7 @@ public class FileReceiverActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_file_receiver);
         initView();
-        task = new FileReceiverTask(onTransferChangeListener);
+        task = new FileReceiverTask(this, onTransferChangeListener);
         taskFuture = ((CoreApplication) getApplication()).threadPool.submit(task);
     }
 
@@ -199,7 +202,7 @@ public class FileReceiverActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (taskFuture != null) {
-            Log.i(TAG, "正在取消接收端监听");
+            Log.i(TAG, "正在取消接收端线程");
             taskFuture.cancel(true);
         }
         if (progressDialog != null && progressDialog.isShowing()) {

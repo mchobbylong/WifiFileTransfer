@@ -1,6 +1,7 @@
 package computing.project.wififiletransfer;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -46,10 +47,10 @@ public class FileSenderActivity extends BaseActivity {
                     if (isCreated()) {
                         progressDialog.setTitle("发送文件");
                         progressDialog.setMessage("正在计算文件的MD5码");
-                        progressDialog.setMax(100);
-                        progressDialog.setProgress(0);
                         progressDialog.setCancelable(false);
                         progressDialog.show();
+                        progressDialog.setProgress(0);
+                        progressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setVisibility(View.INVISIBLE);
                     }
                 }
             });
@@ -61,7 +62,7 @@ public class FileSenderActivity extends BaseActivity {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setTitle("正在发送文件： " + new File(fileTransfer.getFilePath()).getName());
+                        progressDialog.setTitle("正在发送文件： " + fileTransfer.getFileName());
                         if (progress != 100) {
                             progressDialog.setMessage("文件的MD5码：" + fileTransfer.getMd5()
                                     + "\n\n" + "总的传输时间：" + totalTime + " 秒"
@@ -71,23 +72,27 @@ public class FileSenderActivity extends BaseActivity {
                                     + "\n" + "平均-预估的剩余完成时间：" + averageRemainingTime + " 秒"
                             );
                         }
-                        progressDialog.setProgress(progress);
                         progressDialog.setCancelable(true);
                         progressDialog.show();
+                        progressDialog.setProgress(progress);
+                        progressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setVisibility(View.VISIBLE);
                     }
                 }
             });
         }
 
         @Override
-        public void onTransferSucceed(FileTransfer fileTransfer) {
+        public void onTransferSucceed(final FileTransfer fileTransfer) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     if (isCreated()) {
                         progressDialog.setTitle("文件发送成功");
+                        progressDialog.setMessage("已成功发送文件：" + fileTransfer.getFileName());
                         progressDialog.setCancelable(true);
                         progressDialog.show();
+                        progressDialog.setProgress(100);
+                        progressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setVisibility(View.INVISIBLE);
                     }
                 }
             });
@@ -103,6 +108,7 @@ public class FileSenderActivity extends BaseActivity {
                         progressDialog.setMessage("异常信息： " + e.getMessage());
                         progressDialog.setCancelable(true);
                         progressDialog.show();
+                        progressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setVisibility(View.INVISIBLE);
                     }
                 }
             });
@@ -132,6 +138,16 @@ public class FileSenderActivity extends BaseActivity {
         progressDialog.setTitle("发送文件");
         progressDialog.setMax(100);
         progressDialog.setIndeterminate(false);
+        // 添加取消按钮
+        progressDialog.setButton(DialogInterface.BUTTON_POSITIVE, "取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (taskFuture != null)
+                    taskFuture.cancel(true);
+                taskFuture = null;
+                task = null;
+            }
+        });
     }
 
     @Override

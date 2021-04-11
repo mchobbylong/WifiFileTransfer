@@ -60,7 +60,7 @@ public class SpeedMonitor {
         lastProgress = fileTransfer.getProgress();
         startTime = new Date();
         scheduledExecutor = Executors.newScheduledThreadPool(1);
-        scheduledExecutor.scheduleAtFixedRate(speedMonitor, 0, MONITOR_PERIOD, TimeUnit.MILLISECONDS);
+        scheduledExecutor.scheduleAtFixedRate(speedMonitor, MONITOR_PERIOD, MONITOR_PERIOD, TimeUnit.MILLISECONDS);
     }
 
     public void stop() {
