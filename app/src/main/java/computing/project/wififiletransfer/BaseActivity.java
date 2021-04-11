@@ -10,12 +10,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
-/**
- * 作者：chenZY
- * 时间：2018/4/3 14:51
- * 描述：https://www.jianshu.com/u/9df45b87cfdf
- * https://github.com/leavesC
- */
 @SuppressLint("Registered")
 public class BaseActivity extends AppCompatActivity {
 

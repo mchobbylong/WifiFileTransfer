@@ -6,12 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 
-/**
- * 作者：chenZY
- * 时间：2018/4/3 15:20
- * 描述：https://www.jianshu.com/u/9df45b87cfdf
- * https://github.com/leavesC
- */
 public class Md5Util {
 
     public static String getMd5(File file) {
