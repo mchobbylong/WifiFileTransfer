@@ -3,12 +3,15 @@ package computing.project.wififiletransfer.service;
 import android.text.TextUtils;
 import android.util.Log;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
@@ -29,9 +32,11 @@ public class FileSenderTask implements Runnable {
     private final String ipAddress;
     private final OnTransferChangeListener listener;
     private Socket socket;
-    private InputStream inputStream;
     private OutputStream outputStream;
     private ObjectOutputStream objectOutputStream;
+    private InputStream inputStream;
+    private ObjectInputStream objectInputStream;
+    private RandomAccessFile fileInputStream;
     private SpeedMonitor monitor;
 
     public FileSenderTask(FileTransfer fileTransfer, String ipAddress, OnTransferChangeListener listener) {
@@ -73,24 +78,28 @@ public class FileSenderTask implements Runnable {
             objectOutputStream = new ObjectOutputStream(outputStream);
             objectOutputStream.writeObject(fileTransfer);
 
-            // TODO: 接受来自接收端的 progress 值
+            // 接受来自接收端的 progress 值
+            inputStream = socket.getInputStream();
+            objectInputStream = new ObjectInputStream(inputStream);
+            Long receivedProgress = (Long) objectInputStream.readObject();
+            fileTransfer.setProgress(receivedProgress);
 
-            // TODO: 使用 RandomAccessFile 类，并调用 .seek(progress) 指定续传的位置
-            inputStream = new FileInputStream(new File(fileTransfer.getFilePath()));
+            // 使用 RandomAccessFile 类，并调用 .seek(progress) 指定续传的位置
+            fileInputStream = new RandomAccessFile(new File(fileTransfer.getFilePath()), "r");
+            fileInputStream.seek(fileTransfer.getProgress());
 
             monitor = new SpeedMonitor(fileTransfer, listener);
             monitor.start();
             byte[] buffer = new byte[Constants.TRANSFER_BUFFER_SIZE];
             int size;
-            while ((!Thread.currentThread().isInterrupted()) && ((size = inputStream.read(buffer)) != -1)) {
+            while ((!Thread.currentThread().isInterrupted()) && ((size = fileInputStream.read(buffer)) != -1)) {
                 if (!suspended) {
                     outputStream.write(buffer, 0, size);
                     fileTransfer.setProgress(fileTransfer.getProgress() + size);
                 } else {
-                    while (suspended)
-                        synchronized (state) {
-                            state.wait();
-                        }
+                    synchronized (state) {
+                        while (suspended) state.wait();
+                    }
                 }
             }
             // 检查是不是传输被中断了
@@ -103,7 +112,7 @@ public class FileSenderTask implements Runnable {
         } catch (InterruptedException e) {
             Log.i(TAG, "文件发送已中断");
             Thread.currentThread().interrupt();
-            listener.onTransferFailed(fileTransfer, new Exception("传输已中断"));
+            listener.onTransferFailed(fileTransfer, new Exception("文件发送已取消"));
         } catch (Exception e) {
             Log.e(TAG, "文件发送异常：" + e.getMessage());
             e.printStackTrace();
@@ -113,34 +122,30 @@ public class FileSenderTask implements Runnable {
         }
     }
 
+    private void closeStream(Closeable s) {
+        if (s != null) {
+            try {
+                s.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private void cleanUp() {
         if (monitor != null) {
             monitor.stop();
         }
-        if (objectOutputStream != null) {
-            try {
-                objectOutputStream.close();
-                objectOutputStream = null;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        if (outputStream != null) {
-            try {
-                outputStream.close();
-                outputStream = null;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        if (inputStream != null) {
-            try {
-                inputStream.close();
-                inputStream = null;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        closeStream(objectOutputStream);
+        objectOutputStream = null;
+        closeStream(outputStream);
+        outputStream = null;
+        closeStream(objectInputStream);
+        objectInputStream = null;
+        closeStream(inputStream);
+        inputStream = null;
+        closeStream(fileInputStream);
+        fileInputStream = null;
         if (socket != null && !socket.isClosed()) {
             try {
                 socket.close();

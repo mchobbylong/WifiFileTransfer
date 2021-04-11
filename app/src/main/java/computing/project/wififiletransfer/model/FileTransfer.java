@@ -11,7 +11,7 @@ import java.io.Serializable;
  * 描述：https://www.jianshu.com/u/9df45b87cfdf
  * https://github.com/leavesC
  */
-public class FileTransfer implements Serializable {
+public class FileTransfer implements Serializable, Cloneable {
 
     //文件名
     private String fileName;
@@ -28,9 +28,7 @@ public class FileTransfer implements Serializable {
     //当前传输进度
     private long progress;
 
-    public FileTransfer() {
-
-    }
+    public FileTransfer() {}
 
     public FileTransfer(File file) {
         this.fileName = file.getName();
@@ -86,4 +84,15 @@ public class FileTransfer implements Serializable {
                 '}';
     }
 
+    @NonNull
+    @Override
+    public FileTransfer clone() {
+        FileTransfer ret = new FileTransfer();
+        ret.setFileName(fileName);
+        ret.setFileSize(fileSize);
+        ret.setFilePath(filePath);
+        ret.setMd5(md5);
+        ret.setProgress(progress);
+        return ret;
+    }
 }
