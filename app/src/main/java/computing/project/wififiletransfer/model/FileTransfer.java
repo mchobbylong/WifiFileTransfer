@@ -26,7 +26,7 @@ public class FileTransfer implements Serializable {
     private String md5;
 
     //当前传输进度
-    private int transferProgress;
+    private long progress;
 
     public FileTransfer() {
 
@@ -36,6 +36,7 @@ public class FileTransfer implements Serializable {
         this.fileName = file.getName();
         this.filePath = file.getPath();
         this.fileSize = file.length();
+        this.progress = 0;
     }
 
     public String getFileName() {
@@ -69,6 +70,10 @@ public class FileTransfer implements Serializable {
     public void setMd5(String md5) {
         this.md5 = md5;
     }
+
+    public long getProgress() { return progress; }
+
+    public void setProgress(long progress) { this.progress = progress; }
 
     @NonNull
     @Override

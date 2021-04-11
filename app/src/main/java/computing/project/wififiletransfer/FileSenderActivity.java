@@ -1,11 +1,8 @@
 package computing.project.wififiletransfer;
 
 import android.app.ProgressDialog;
-import android.content.ComponentName;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -13,13 +10,13 @@ import android.widget.TextView;
 import me.rosuh.filepicker.config.FilePickerManager;
 
 import java.io.File;
-import java.text.MessageFormat;
 import java.util.List;
+import java.util.concurrent.Future;
 
-import computing.project.wififiletransfer.common.Constants;
 import computing.project.wififiletransfer.manager.WifiLManager;
 import computing.project.wififiletransfer.model.FileTransfer;
-import computing.project.wififiletransfer.service.FileSenderService;
+import computing.project.wififiletransfer.common.OnTransferChangeListener;
+import computing.project.wififiletransfer.service.FileSenderTask;
 
 /**
  * 作者：chenZY
@@ -33,11 +30,13 @@ public class FileSenderActivity extends BaseActivity {
 
     private static final int CODE_CHOOSE_FILE = 100;
 
-    private FileSenderService fileSenderService;
-
     private ProgressDialog progressDialog;
 
-    private FileSenderService.OnSendProgressChangeListener progressChangListener = new FileSenderService.OnSendProgressChangeListener() {
+    private FileSenderTask task;
+
+    private Future taskFuture;
+
+    private OnTransferChangeListener onTransferChangeListener = new OnTransferChangeListener() {
 
         @Override
         public void onStartComputeMD5() {
@@ -110,30 +109,11 @@ public class FileSenderActivity extends BaseActivity {
         }
     };
 
-    private ServiceConnection serviceConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            FileSenderService.MyBinder binder = (FileSenderService.MyBinder) service;
-            fileSenderService = binder.getService();
-            fileSenderService.setProgressChangListener(progressChangListener);
-            Log.e(TAG, "onServiceConnected");
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            fileSenderService = null;
-            bindService(FileSenderService.class, serviceConnection);
-            Log.e(TAG, "onServiceDisconnected");
-        }
-    };
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_file_sender);
         initView();
-        bindService(FileSenderService.class, serviceConnection);
     }
 
     private void initView() {
@@ -157,9 +137,9 @@ public class FileSenderActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (fileSenderService != null) {
-            fileSenderService.setProgressChangListener(null);
-            unbindService(serviceConnection);
+        Log.i(TAG, "onDestroy");
+        if (taskFuture != null) {
+            taskFuture.cancel(true);
         }
         progressDialog.dismiss();
     }
@@ -177,14 +157,15 @@ public class FileSenderActivity extends BaseActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CODE_CHOOSE_FILE && resultCode == RESULT_OK) {
             List<String> paths = FilePickerManager.INSTANCE.obtainData();
-            if (paths != null && !paths.isEmpty()) {
+            if (!paths.isEmpty()) {
                 String path = paths.get(0);
                 File file = new File(path);
                 if (file.exists()) {
                     FileTransfer fileTransfer = new FileTransfer(file);
                     Log.e(TAG, "待发送的文件：" + fileTransfer);
                     TextView tv = findViewById(R.id.et_serverIp);
-                    FileSenderService.startActionTransfer(this, fileTransfer, tv.getText().toString());
+                    task = new FileSenderTask(fileTransfer, tv.getText().toString(), onTransferChangeListener);
+                    taskFuture = ((CoreApplication) this.getApplication()).threadPool.submit(task);
                 }
             }
         }

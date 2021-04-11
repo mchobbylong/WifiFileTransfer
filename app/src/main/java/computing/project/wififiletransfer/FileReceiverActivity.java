@@ -1,36 +1,28 @@
 package computing.project.wififiletransfer;
 
 import android.app.ProgressDialog;
-import android.content.ComponentName;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.text.TextUtils;
 import android.util.Log;
-import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
-import java.io.File;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.text.MessageFormat;
 import java.util.Enumeration;
-import java.util.Locale;
+import java.util.concurrent.Future;
 
-import computing.project.wififiletransfer.common.Constants;
+import computing.project.wififiletransfer.common.OnTransferChangeListener;
+import computing.project.wififiletransfer.manager.WifiLManager;
 import computing.project.wififiletransfer.model.FileTransfer;
-import computing.project.wififiletransfer.service.FileReceiverService;
+import computing.project.wififiletransfer.service.FileReceiverTask;
 
 /**
  * 作者：chenZY
@@ -40,30 +32,13 @@ import computing.project.wififiletransfer.service.FileReceiverService;
  */
 public class FileReceiverActivity extends BaseActivity {
 
-    private FileReceiverService fileReceiverService;
+    private static final String TAG = "ReceiverActivity";
 
     private ProgressDialog progressDialog;
 
-    private static final String TAG = "ReceiverActivity";
+    private FileReceiverTask task;
 
-    private ServiceConnection serviceConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            FileReceiverService.MyBinder binder = (FileReceiverService.MyBinder) service;
-            fileReceiverService = binder.getService();
-            fileReceiverService.setProgressChangListener(progressChangListener);
-            if (!fileReceiverService.isRunning()) {
-                FileReceiverService.startActionTransfer(FileReceiverActivity.this);
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            fileReceiverService = null;
-            bindService(FileReceiverService.class, serviceConnection);
-        }
-    };
+    private Future taskFuture;
 
 
     public static String getIpAddressString() {
@@ -85,7 +60,7 @@ public class FileReceiverActivity extends BaseActivity {
         return "0.0.0.0";
     }
 
-    private FileReceiverService.OnReceiveProgressChangeListener progressChangListener = new FileReceiverService.OnReceiveProgressChangeListener() {
+    private OnTransferChangeListener onTransferChangeListener = new OnTransferChangeListener() {
 
         private FileTransfer originFileTransfer;
 
@@ -113,9 +88,8 @@ public class FileReceiverActivity extends BaseActivity {
                             @Override
 
                             public void onClick(DialogInterface dialog, int which) {
-
-                                // TODO: Resume the transmission
-                                fileReceiverService.setResume();
+                                // Resume the transmission
+                                task.resume();
                             }
 
                         });
@@ -125,9 +99,8 @@ public class FileReceiverActivity extends BaseActivity {
                             @Override
 
                             public void onClick(DialogInterface dialog, int which) {
-
-                                // TODO: Pause the transmission
-                                fileReceiverService.setPause();
+                                // Pause the transmission
+                                task.suspend();
                             }
 
                         });
@@ -158,6 +131,7 @@ public class FileReceiverActivity extends BaseActivity {
                 @Override
                 public void run() {
                     if (isCreated()) {
+                        progressDialog.setProgress(100);
                         progressDialog.setTitle("传输成功");
                         progressDialog.setMessage("原始文件的MD5码是：" + originFileTransfer.getMd5()
                                 + "\n" + "本地文件的MD5码是：" + fileTransfer.getMd5()
@@ -165,7 +139,7 @@ public class FileReceiverActivity extends BaseActivity {
                         progressDialog.setCancelable(true);
                         progressDialog.show();
 
-                        // 如果这是图片，则调用 Gilde 显示图片
+                        // 如果这是图片，则调用 Glide 显示图片
                         BitmapFactory.Options bitmapOpts = new BitmapFactory.Options();
                         bitmapOpts.inJustDecodeBounds = true;
                         Bitmap _temp = BitmapFactory.decodeFile(fileTransfer.getFilePath(), bitmapOpts);
@@ -204,14 +178,15 @@ public class FileReceiverActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_file_receiver);
         initView();
-        bindService(FileReceiverService.class, serviceConnection);
+        task = new FileReceiverTask(onTransferChangeListener);
+        taskFuture = ((CoreApplication) getApplication()).threadPool.submit(task);
     }
 
     private void initView() {
         setTitle("接收文件");
         iv_image = findViewById(R.id.iv_image);
         TextView tv_hint = findViewById(R.id.tv_hint);
-        tv_hint.setText(MessageFormat.format("本机IP地址：{0}", getIpAddressString()));
+        tv_hint.setText(MessageFormat.format("本机IP地址：{0}", WifiLManager.getLocalIpAddress(this)));
         progressDialog = new ProgressDialog(this);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         progressDialog.setCancelable(false);
@@ -223,30 +198,12 @@ public class FileReceiverActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (fileReceiverService != null) {
-            fileReceiverService.setProgressChangListener(null);
-            unbindService(serviceConnection);
+        if (taskFuture != null) {
+            Log.i(TAG, "正在取消接收端监听");
+            taskFuture.cancel(true);
         }
         if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.dismiss();
         }
     }
-
-    private void openFile(String filePath) {
-        String ext = filePath.substring(filePath.lastIndexOf('.')).toLowerCase(Locale.US);
-        try {
-            MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
-            String mime = mimeTypeMap.getMimeTypeFromExtension(ext.substring(1));
-            mime = TextUtils.isEmpty(mime) ? "" : mime;
-            Intent intent = new Intent();
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.setAction(android.content.Intent.ACTION_VIEW);
-            intent.setDataAndType(Uri.fromFile(new File(filePath)), mime);
-            startActivity(intent);
-        } catch (Exception e) {
-            Log.e(TAG, "文件打开异常：" + e.getMessage());
-            showToast("文件打开异常：" + e.getMessage());
-        }
-    }
-
 }
