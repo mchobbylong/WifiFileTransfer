@@ -61,10 +61,22 @@
         android:layout_width="690dp"
         android:layout_height="1150dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.053"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottoomOf="@id/et_serverIp"
-        tools:context=".FileSenderActivity">
+        tools:context=".FileSenderActivity"
+        tools:layout_editor_absoluteY="-25dp">
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="49dp"
+            android:layout_height="87dp"
+            android:layout_marginTop="544dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.048"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/sharing1" />
 
         <TextView
             android:id="@+id/textView1"
@@ -92,7 +104,7 @@
             android:progress="60"
             app:layout_constraintBottom_toBottomOf="@+id/button2"
             app:layout_constraintEnd_toStartOf="@+id/button1"
-            app:layout_constraintHorizontal_bias="0.756"
+            app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/button2"
             app:layout_constraintVertical_bias="1.0" />
@@ -103,12 +115,10 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/progressBar1"
             android:layout_centerHorizontal="true"
-            android:layout_marginEnd="20dp"
+            android:layout_marginEnd="4dp"
             android:text="STOP"
-            app:layout_constraintBottom_toBottomOf="@+id/button2"
             app:layout_constraintEnd_toStartOf="@+id/button2"
-            app:layout_constraintTop_toTopOf="@+id/button2"
-            app:layout_constraintVertical_bias="0.0" />
+            tools:layout_editor_absoluteY="553dp" />
 
         <Button
             android:id="@+id/button2"
@@ -116,10 +126,10 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/button1"
             android:layout_centerHorizontal="true"
-            android:layout_marginEnd="60dp"
+            android:layout_marginEnd="32dp"
             android:text="RESUME"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:layout_editor_absoluteY="418dp" />
+            tools:layout_editor_absoluteY="553dp" />
 
         <TextView
             android:id="@+id/textView1"
@@ -132,7 +142,7 @@
             android:textAppearance="?android:attr/textAppearanceLarge"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.053"
+            app:layout_constraintHorizontal_bias="0.145"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/simpleProgressBar"
             app:layout_constraintVertical_bias="0.0" />
@@ -148,7 +158,7 @@
             android:textAppearance="?android:attr/textAppearanceLarge"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.532"
+            app:layout_constraintHorizontal_bias="0.631"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/simpleProgressBar"
             app:layout_constraintVertical_bias="0.0" />
