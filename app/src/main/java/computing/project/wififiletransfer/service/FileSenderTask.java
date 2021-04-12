@@ -5,7 +5,6 @@ import android.util.Log;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -25,7 +24,7 @@ public class FileSenderTask implements Runnable {
     private static final String TAG = "FileSenderTask";
 
     // 暂停功能相关
-    Object state = new Object();
+    private final Object state = new Object();
     private volatile boolean suspended = false;
 
     private final FileTransfer fileTransfer;
@@ -58,12 +57,14 @@ public class FileSenderTask implements Runnable {
         }
     }
 
+    public boolean isSuspended() { return suspended; }
+
     @Override
     public void run() {
         // 计算 MD5
         if (TextUtils.isEmpty(fileTransfer.getMd5())) {
             Log.i(TAG, "开始计算 MD5");
-            listener.onStartComputeMD5();
+            listener.onStartComputeMD5(fileTransfer);
             fileTransfer.setMd5(Md5Util.getMd5(new File(fileTransfer.getFilePath())));
             Log.i(TAG, "MD5 计算完毕");
         } else {
@@ -88,6 +89,7 @@ public class FileSenderTask implements Runnable {
             fileInputStream = new RandomAccessFile(new File(fileTransfer.getFilePath()), "r");
             fileInputStream.seek(fileTransfer.getProgress());
 
+            listener.onStartTransfer(fileTransfer);
             monitor = new SpeedMonitor(fileTransfer, listener);
             monitor.start();
             byte[] buffer = new byte[Constants.TRANSFER_BUFFER_SIZE];

@@ -12,7 +12,6 @@
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
         android:gravity="start"
-        android:textColor="@android:color/black"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -26,7 +25,6 @@
         android:layout_marginEnd="5dp"
         android:gravity="start"
         android:text="IP address of receiver:"
-        android:textColor="@android:color/black"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="@id/et_serverIp"
         app:layout_constraintEnd_toStartOf="@id/et_serverIp"
@@ -39,7 +37,6 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="20dp"
         android:gravity="start"
-        android:textColor="@android:color/black"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/tv_serverIpHint"
@@ -51,20 +48,21 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:backgroundTint="#A98BC34A"
-        android:onClick="sendFile"
+        android:onClick="navToChose"
         android:text="Select the file to send"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/et_serverIp"
-        app:layout_constraintBottom_toTopOf="@id/layout_progress" />
+        app:layout_constraintBottom_toTopOf="@id/group_progress_view" />
 
     <include
         layout="@layout/progress_view"
-        android:id="@+id/layout_progress"
+        android:id="@+id/group_progress_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginVertical="36dp"
         android:layout_marginHorizontal="16dp"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/bn_select" />

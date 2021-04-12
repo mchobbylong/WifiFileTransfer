@@ -6,7 +6,6 @@ import android.util.Log;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -17,7 +16,6 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.stream.Stream;
 
 import computing.project.wififiletransfer.common.Constants;
 import computing.project.wififiletransfer.common.Md5Util;
@@ -30,7 +28,7 @@ public class FileReceiverTask implements Runnable {
     private static final String TAG = "FileReceiverTask";
 
     // 暂停功能相关
-    Object state = new Object();
+    private final Object state = new Object();
     private volatile boolean suspended = false;
 
     private final OnTransferChangeListener listener;
@@ -64,6 +62,8 @@ public class FileReceiverTask implements Runnable {
         }
     }
 
+    public boolean isSuspended() { return suspended; }
+
     @Override
     public void run() {
         File file = null;
@@ -91,9 +91,8 @@ public class FileReceiverTask implements Runnable {
                     objectInputStream = new ObjectInputStream(inputStream);
                     fileTransfer = (FileTransfer) objectInputStream.readObject();
                     Log.i(TAG, "待接收的文件：" + fileTransfer);
-                    if (fileTransfer == null) {
-                        exception = new Exception("发送端传来的信息有误");
-                    }
+                    if (fileTransfer == null)
+                        throw new Exception("发送端传来的信息有误");
 
                     // 判断以前有没有传过相同的文件（用fileTransfer.md5）
                     //     如果以前传过，从记录里获取上次成功传输的位置（fileTransfer.progress）和路径
@@ -110,12 +109,13 @@ public class FileReceiverTask implements Runnable {
                     // 将 progress 通过 socket 回传给发送端
                     outputStream = client.getOutputStream();
                     objectOutputStream = new ObjectOutputStream(outputStream);
-                    objectOutputStream.writeObject(Long.valueOf(fileTransfer.getProgress()));
+                    objectOutputStream.writeObject(fileTransfer.getProgress());
 
                     file = new File(fileTransfer.getFilePath());
                     fileOutputStream = new RandomAccessFile(file, "rwd");
                     fileOutputStream.seek(fileTransfer.getProgress());
 
+                    listener.onStartTransfer(fileTransfer);
                     monitor = new SpeedMonitor(fileTransfer, listener);
                     monitor.start();
                     byte[] buffer = new byte[Constants.TRANSFER_BUFFER_SIZE];
@@ -155,7 +155,7 @@ public class FileReceiverTask implements Runnable {
                         exception = null;
                     } else {
                         // 正常完成传输，校验 MD5
-                        listener.onStartComputeMD5();
+                        listener.onStartComputeMD5(fileTransfer);
                         Log.i(TAG, "开始计算 MD5");
                         String oldMd5 = fileTransfer.getMd5();
                         fileTransfer.setMd5(Md5Util.getMd5(file));

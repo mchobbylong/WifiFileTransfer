@@ -1,12 +1,16 @@
 package computing.project.wififiletransfer;
 
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import androidx.core.content.res.ResourcesCompat;
 
 import me.rosuh.filepicker.config.FilePickerManager;
 
@@ -17,15 +21,15 @@ import java.util.concurrent.Future;
 import computing.project.wififiletransfer.manager.WifiLManager;
 import computing.project.wififiletransfer.model.FileTransfer;
 import computing.project.wififiletransfer.common.OnTransferChangeListener;
+import computing.project.wififiletransfer.common.CommonUtils;
 import computing.project.wififiletransfer.service.FileSenderTask;
+
 
 public class FileSenderActivity extends BaseActivity {
 
     public static final String TAG = "FileSenderActivity";
 
     private static final int CODE_CHOOSE_FILE = 100;
-
-    private ProgressDialog progressDialog;
 
     private FileSenderTask task;
 
@@ -34,18 +38,50 @@ public class FileSenderActivity extends BaseActivity {
     private OnTransferChangeListener onTransferChangeListener = new OnTransferChangeListener() {
 
         @Override
-        public void onStartComputeMD5() {
+        public void onStartComputeMD5(final FileTransfer fileTransfer) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setTitle("send files");
-                        progressDialog.setMessage("Calculating MD5 code of file");
-                        progressDialog.setCancelable(false);
-                        progressDialog.show();
-                        progressDialog.setProgress(0);
-                        progressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setVisibility(View.INVISIBLE);
+                        filename.setText(fileTransfer.getFileName());
+                        progressText.setText("0");
+                        progressBar.setProgress(0);
+                        size.setText(fileTransfer.getFileSizeText());
+                        status.setText("Calculating MD5");
+                        status.setTextColor(getResources().getColor(android.R.color.tab_indicator_text));
+                        speed.setText("0KB/s");
+
+                        // 禁用两个按钮
+                        buttonSuspend.setEnabled(false);
+                        buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend_disabled, null));
+                        buttonInterrupt.setEnabled(false);
+                        buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete_disabled, null));
+
+                        progressView.setVisibility(View.VISIBLE);
                     }
+                }
+            });
+        }
+
+        @Override
+        public void onStartTransfer(final FileTransfer fileTransfer) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    filename.setText(fileTransfer.getFileName());
+                    progressText.setText("0");
+                    progressBar.setProgress(0);
+                    size.setText(fileTransfer.getFileSizeText());
+                    speed.setText("0KB/s");
+                    status.setTextColor(getResources().getColor(android.R.color.tab_indicator_text));
+
+                    // 启用两个按钮
+                    buttonSuspend.setEnabled(true);
+                    buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend, null));
+                    buttonInterrupt.setEnabled(true);
+                    buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete, null));
+
+                    progressView.setVisibility(View.VISIBLE);
                 }
             });
         }
@@ -56,20 +92,10 @@ public class FileSenderActivity extends BaseActivity {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setTitle("Sending file： " + fileTransfer.getFileName());
-                        if (progress != 100) {
-                            progressDialog.setMessage("MD5 code of file：" + fileTransfer.getMd5()
-                                    + "\n\n" + "Total transmission time：" + totalTime + " seconds"
-                                    + "\n\n" + "Instantaneous transmission rate：" + (int) instantSpeed + " Kb/s"
-                                    + "\n" + "Instantaneous - estimated remaining completion time：" + instantRemainingTime + " seconds"
-                                    + "\n\n" + "Average transmission rate：" + (int) averageSpeed + " Kb/s"
-                                    + "\n" + "Average - estimated remaining completion time：" + averageRemainingTime + " seconds"
-                            );
-                        }
-                        progressDialog.setCancelable(true);
-                        progressDialog.show();
-                        progressDialog.setProgress(progress);
-                        progressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setVisibility(View.VISIBLE);
+                        progressText.setText(String.valueOf(progress));
+                        progressBar.setProgress(progress);
+                        status.setText(CommonUtils.getRemainingTimeText(averageRemainingTime));
+                        speed.setText(CommonUtils.getSpeedText(instantSpeed));
                     }
                 }
             });
@@ -81,12 +107,19 @@ public class FileSenderActivity extends BaseActivity {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setTitle("File sent successfully");
-                        progressDialog.setMessage("File sent successfully：" + fileTransfer.getFileName());
-                        progressDialog.setCancelable(true);
-                        progressDialog.show();
-                        progressDialog.setProgress(100);
-                        progressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setVisibility(View.INVISIBLE);
+                        progressText.setText("100");
+                        progressBar.setProgress(100);
+                        status.setText("Transfer succeed");
+                        status.setTextColor(getResources().getColor(R.color.colorSuccess));
+
+                        // 启用选择文件的按钮
+                        buttonSelectFile.setEnabled(true);
+
+                        // 禁用两个按钮
+                        buttonSuspend.setEnabled(false);
+                        buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend_disabled, null));
+                        buttonInterrupt.setEnabled(false);
+                        buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete_disabled, null));
                     }
                 }
             });
@@ -98,11 +131,17 @@ public class FileSenderActivity extends BaseActivity {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setTitle("Failed to send file");
-                        progressDialog.setMessage("Abnormal information： " + e.getMessage());
-                        progressDialog.setCancelable(true);
-                        progressDialog.show();
-                        progressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setVisibility(View.INVISIBLE);
+                        status.setText("Transfer failed: " + e.getMessage());
+                        status.setTextColor(Color.RED);
+
+                        // 启用选择文件的按钮
+                        buttonSelectFile.setEnabled(true);
+
+                        // 禁用两个按钮
+                        buttonSuspend.setEnabled(false);
+                        buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend_disabled, null));
+                        buttonInterrupt.setEnabled(false);
+                        buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete_disabled, null));
                     }
                 }
             });
@@ -116,32 +155,43 @@ public class FileSenderActivity extends BaseActivity {
         initView();
     }
 
-    private void initView() {
-        setTitle("send files");
-        TextView tv_hint = findViewById(R.id.tv_hint);
-        // 初始化接收端 IP 地址为当前连接 Wifi 的网关（假设连上了接收端开的热点）
-        TextView serverIp = findViewById(R.id.et_serverIp);
-        serverIp.setText(WifiLManager.getHotspotIpAddress(this));
+    private ViewGroup progressView;
+    private TextView serverIp;
+    private TextView progressText;
+    private TextView filename;
+    private ProgressBar progressBar;
+    private TextView size;
+    private TextView status;
+    private TextView speed;
+    private Button buttonSuspend;
+    private Button buttonInterrupt;
+    private Button buttonSelectFile;
 
-        // TODO: 废弃 ProgressDialog
-        // 初始化 ProgressDialog
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        progressDialog.setCancelable(false);
-        progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.setTitle("send files");
-        progressDialog.setMax(100);
-        progressDialog.setIndeterminate(false);
-        // 添加取消按钮
-        progressDialog.setButton(DialogInterface.BUTTON_POSITIVE, "cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (taskFuture != null)
-                    taskFuture.cancel(true);
-                taskFuture = null;
-                task = null;
-            }
-        });
+    private void initView() {
+        setTitle("Send Files");
+        TextView tv_hint = findViewById(R.id.tv_hint);
+        tv_hint.setText("Connect to the same WiFi with the receiver, then input the receiver's IP address.");
+        // 初始化接收端 IP 地址为当前连接 Wifi 的网关（假设连上了接收端开的热点）
+        serverIp = findViewById(R.id.et_serverIp);
+        serverIp.setText(WifiLManager.getGatewayIpAddress(this));
+        buttonSelectFile = findViewById(R.id.bn_select);
+
+        // 初始化进度条
+        progressView = findViewById(R.id.group_progress_view);
+        progressText = progressView.findViewById(R.id.percent);
+        progressText.setText("");
+        filename = progressView.findViewById(R.id.filename);
+        filename.setText("");
+        size = progressView.findViewById(R.id.size);
+        size.setText("");
+        status = progressView.findViewById(R.id.status);
+        status.setText("");
+        speed = progressView.findViewById(R.id.speed);
+        speed.setText("");
+        progressBar = progressView.findViewById(R.id.progress_bar);
+        progressBar.setMax(100);
+        buttonSuspend = progressView.findViewById(R.id.bn_toggle_suspension);
+        buttonInterrupt = progressView.findViewById(R.id.bn_interrupt);
     }
 
     @Override
@@ -151,15 +201,13 @@ public class FileSenderActivity extends BaseActivity {
         if (taskFuture != null) {
             taskFuture.cancel(true);
         }
-        progressDialog.dismiss();
     }
 
-    public void sendFile(View view) {
-        // if (!Constants.AP_SSID.equals(WifiLManager.getConnectedSSID(this))) {
-        //     showToast("当前连接的Wifi并非文件接收端开启的Wifi热点，请重试");
-        //     return;
-        // }
-        navToChose();
+    public void navToChose(View view) {
+        FilePickerManager.INSTANCE
+                .from(this)
+                .enableSingleChoice()
+                .forResult(CODE_CHOOSE_FILE);
     }
 
     @Override
@@ -171,21 +219,35 @@ public class FileSenderActivity extends BaseActivity {
                 String path = paths.get(0);
                 File file = new File(path);
                 if (file.exists()) {
+                    buttonSelectFile.setEnabled(false);
+
                     FileTransfer fileTransfer = new FileTransfer(file);
-                    Log.e(TAG, "Files to be sent：" + fileTransfer);
-                    TextView tv = findViewById(R.id.et_serverIp);
-                    task = new FileSenderTask(fileTransfer, tv.getText().toString(), onTransferChangeListener);
+                    Log.i(TAG, "Files to be sent：" + fileTransfer);
+                    task = new FileSenderTask(fileTransfer, serverIp.getText().toString(), onTransferChangeListener);
                     taskFuture = ((CoreApplication) this.getApplication()).threadPool.submit(task);
                 }
             }
         }
     }
 
-    private void navToChose() {
-        FilePickerManager.INSTANCE
-                .from(this)
-                .enableSingleChoice()
-                .forResult(CODE_CHOOSE_FILE);
+    public void toggleTaskSuspension(View view) {
+        Log.d(TAG, "Toggle suspension received");
+        if (task == null || taskFuture == null || taskFuture.isDone()) return;
+        if (task.isSuspended()) {
+            task.resume();
+            buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend, null));
+        } else {
+            task.suspend();
+            buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_play, null));
+        }
     }
 
+    public void interruptTask(View view) {
+        Log.d(TAG, "Interrupt received");
+        if (task == null || taskFuture == null) return;
+        taskFuture.cancel(true);
+        task = null;
+        taskFuture = null;
+        buttonSelectFile.setEnabled(true);
+    }
 }

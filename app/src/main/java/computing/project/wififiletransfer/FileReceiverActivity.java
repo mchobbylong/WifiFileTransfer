@@ -1,25 +1,25 @@
 package computing.project.wififiletransfer;
 
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
+import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import androidx.core.content.res.ResourcesCompat;
 
 import com.bumptech.glide.Glide;
 
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.text.MessageFormat;
-import java.util.Enumeration;
 import java.util.concurrent.Future;
 
-import computing.project.wififiletransfer.common.OnTransferChangeListener;
+import computing.project.wififiletransfer.common.CommonUtils;
 import computing.project.wififiletransfer.manager.WifiLManager;
 import computing.project.wififiletransfer.model.FileTransfer;
 import computing.project.wififiletransfer.service.FileReceiverTask;
@@ -29,92 +29,68 @@ public class FileReceiverActivity extends BaseActivity {
 
     private static final String TAG = "ReceiverActivity";
 
-    private ProgressDialog progressDialog;
-
     private FileReceiverTask task;
 
     private Future taskFuture;
 
-
-    public static String getIpAddressString() {
-        try {
-            for (Enumeration<NetworkInterface> enNetI = NetworkInterface
-                    .getNetworkInterfaces(); enNetI.hasMoreElements(); ) {
-                NetworkInterface netI = enNetI.nextElement();
-                for (Enumeration<InetAddress> enumIpAddr = netI
-                        .getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
-                    InetAddress inetAddress = enumIpAddr.nextElement();
-                    if (inetAddress instanceof Inet4Address && !inetAddress.isLoopbackAddress()) {
-                        return inetAddress.getHostAddress();
-                    }
-                }
-            }
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
-        return "0.0.0.0";
-    }
-
-    private OnTransferChangeListener onTransferChangeListener = new OnTransferChangeListener() {
-
-        private FileTransfer originFileTransfer = null;
+    private class OnTransferChangeListener implements computing.project.wififiletransfer.common.OnTransferChangeListener {
 
         @Override
-        public void onProgressChanged(final FileTransfer fileTransfer, final long totalTime, final int progress, final double instantSpeed, final long instantRemainingTime, final double averageSpeed, final long averageRemainingTime) {
-            this.originFileTransfer = fileTransfer.clone();
+        public void onStartTransfer(final FileTransfer fileTransfer) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setTitle("Files being received： " + originFileTransfer.getFileName());
-                        if (progress != 100) {
-                            progressDialog.setMessage("The MD5 code of the original file is：" + originFileTransfer.getMd5()
-                                    + "\n\n" + "Total transmission time：" + totalTime + " seconds"
-                                    + "\n\n" + "Instantaneous transmission rate：" + (int) instantSpeed + " Kb/s"
-                                    + "\n" + "Instantaneous - estimated remaining completion time：" + instantRemainingTime + " seconds"
-                                    + "\n\n" + "Average transmission rate：" + (int) averageSpeed + " Kb/s"
-                                    + "\n" + "Average - estimated remaining completion time：" + averageRemainingTime + " seconds"
-                            );
-                        }
-                        progressDialog.setCancelable(true);
-                        progressDialog.setButton(DialogInterface.BUTTON_POSITIVE, "continue", new DialogInterface.OnClickListener() {
+                        filename.setText(fileTransfer.getFileName());
+                        progressText.setText("0");
+                        progressBar.setProgress(0);
+                        size.setText(fileTransfer.getFileSizeText());
+                        status.setText("");
+                        status.setTextColor(getResources().getColor(android.R.color.tab_indicator_text));
+                        speed.setText("0KB/s");
 
-                            @Override
+                        // 启用两个按钮
+                        buttonSuspend.setEnabled(true);
+                        buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend, null));
+                        buttonInterrupt.setEnabled(true);
+                        buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete, null));
 
-                            public void onClick(DialogInterface dialog, int which) {
-                                // Resume the transmission
-                                task.resume();
-                            }
-
-                        });
-
-                        progressDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "suspend", new DialogInterface.OnClickListener() {
-
-                            @Override
-
-                            public void onClick(DialogInterface dialog, int which) {
-                                // Pause the transmission
-                                task.suspend();
-                            }
-
-                        });
-                        progressDialog.show();
-                        progressDialog.setProgress(progress);
+                        progressView.setVisibility(View.VISIBLE);
                     }
                 }
             });
         }
 
         @Override
-        public void onStartComputeMD5() {
+        public void onProgressChanged(final FileTransfer fileTransfer, final long totalTime, final int progress, final double instantSpeed, final long instantRemainingTime, final double averageSpeed, final long averageRemainingTime) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setTitle("The transmission is over. Calculating MD5 code of local file to verify file integrity");
-                        progressDialog.setMessage("The MD5 code of the original file is:" + originFileTransfer.getMd5());
-                        progressDialog.setCancelable(false);
-                        progressDialog.show();
+                        progressText.setText(String.valueOf(progress));
+                        progressBar.setProgress(progress);
+                        status.setText(CommonUtils.getRemainingTimeText(averageRemainingTime));
+                        speed.setText(CommonUtils.getSpeedText(instantSpeed));
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void onStartComputeMD5(final FileTransfer fileTransfer) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (isCreated()) {
+                        progressText.setText("100");
+                        progressBar.setProgress(100);
+                        status.setText("Validating MD5");
+
+                        // 禁用两个按钮
+                        buttonSuspend.setEnabled(false);
+                        buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend_disabled, null));
+                        buttonInterrupt.setEnabled(false);
+                        buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete_disabled, null));
                     }
                 }
             });
@@ -126,13 +102,14 @@ public class FileReceiverActivity extends BaseActivity {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setTitle("Transmission successful");
-                        progressDialog.setMessage("The MD5 code of the original file is：" + originFileTransfer.getMd5()
-                                + "\n" + "The MD5 code of the local file is：" + fileTransfer.getMd5()
-                                + "\n" + "file location：" + fileTransfer.getFilePath());
-                        progressDialog.setCancelable(true);
-                        progressDialog.show();
-                        progressDialog.setProgress(100);
+                        status.setText("Transfer succeed");
+                        status.setTextColor(getResources().getColor(R.color.colorSuccess));
+
+                        // 禁用两个按钮
+                        buttonSuspend.setEnabled(false);
+                        buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend_disabled, null));
+                        buttonInterrupt.setEnabled(false);
+                        buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete_disabled, null));
 
                         // 如果这是图片，则调用 Glide 显示图片
                         BitmapFactory.Options bitmapOpts = new BitmapFactory.Options();
@@ -150,47 +127,70 @@ public class FileReceiverActivity extends BaseActivity {
         @Override
         public void onTransferFailed(final FileTransfer fileTransfer, final Exception e) {
             runOnUiThread(new Runnable() {
+                @SuppressLint("SetTextI18n")
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        progressDialog.setTitle("Transmission failed");
-                        if (fileTransfer == null || originFileTransfer == null)
-                            progressDialog.setMessage("Abnormal information：" + e.getMessage());
-                        else
-                            progressDialog.setMessage("The MD5 code of the original file is：" + originFileTransfer.getMd5()
-                                    + "\n" + "The MD5 code of the local file is：" + fileTransfer.getMd5()
-                                    + "\n" + "file location：" + fileTransfer.getFilePath()
-                                    + "\n" + "abnormal information：" + e.getMessage());
-                        progressDialog.setCancelable(true);
-                        progressDialog.show();
+                        status.setText("Transfer failed: " + e.getMessage());
+                        status.setTextColor(Color.RED);
+
+                        // 禁用两个按钮
+                        buttonSuspend.setEnabled(false);
+                        buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend_disabled, null));
+                        buttonInterrupt.setEnabled(false);
+                        buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete_disabled, null));
                     }
                 }
             });
         }
     };
 
-    private ImageView iv_image;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_file_receiver);
         initView();
-        task = new FileReceiverTask(this, onTransferChangeListener);
+        task = new FileReceiverTask(this, new OnTransferChangeListener());
         taskFuture = ((CoreApplication) getApplication()).threadPool.submit(task);
     }
 
+    private ViewGroup progressView;
+    private ImageView iv_image;
+    private TextView progressText;
+    private TextView filename;
+    private ProgressBar progressBar;
+    private TextView size;
+    private TextView status;
+    private TextView speed;
+    private Button buttonSuspend;
+    private Button buttonInterrupt;
+
     private void initView() {
-        setTitle("Receive files");
+        setTitle("Receive Files");
         iv_image = findViewById(R.id.iv_image);
-        TextView tv_hint = findViewById(R.id.tv_hint);
-        tv_hint.setText(MessageFormat.format("Local IP address：{0}", WifiLManager.getLocalIpAddress(this)));
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        progressDialog.setCancelable(false);
-        progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.setTitle("File being received");
-        progressDialog.setMax(100);
+        TextView localIp = findViewById(R.id.tv_local_ip);
+        localIp.setText(WifiLManager.getLocalIpAddress(this));
+
+        // 初始化进度条
+        progressView = findViewById(R.id.group_progress_view);
+        progressText = progressView.findViewById(R.id.percent);
+        progressText.setText("");
+        filename = progressView.findViewById(R.id.filename);
+        filename.setText("");
+        size = progressView.findViewById(R.id.size);
+        size.setText("");
+        status = progressView.findViewById(R.id.status);
+        status.setText("");
+        speed = progressView.findViewById(R.id.speed);
+        speed.setText("");
+        progressBar = progressView.findViewById(R.id.progress_bar);
+        progressBar.setMax(100);
+        buttonSuspend = progressView.findViewById(R.id.bn_toggle_suspension);
+        buttonInterrupt = progressView.findViewById(R.id.bn_interrupt);
+
+        // TODO: ServerSocket.accept() 独立使用一条线程
+        // 监听线程不可被用户中断，因此中断按钮暂不可用
+        buttonInterrupt.setVisibility(View.GONE);
     }
 
     @Override
@@ -200,8 +200,25 @@ public class FileReceiverActivity extends BaseActivity {
             Log.i(TAG, "Canceling receiving thread");
             taskFuture.cancel(true);
         }
-        if (progressDialog != null && progressDialog.isShowing()) {
-            progressDialog.dismiss();
+    }
+
+    public void toggleTaskSuspension(View view) {
+        Log.d(TAG, "Toggle suspension received");
+        if (task == null || taskFuture == null || taskFuture.isDone()) return;
+        if (task.isSuspended()) {
+            task.resume();
+            buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend, null));
+        } else {
+            task.suspend();
+            buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_play, null));
         }
+    }
+
+    public void interruptTask(View view) {
+        Log.d(TAG, "Interrupt received");
+        if (task == null || taskFuture == null) return;
+        taskFuture.cancel(true);
+        task = null;
+        taskFuture = null;
     }
 }

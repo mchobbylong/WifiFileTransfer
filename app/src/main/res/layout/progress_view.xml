@@ -37,27 +37,40 @@
             android:id="@+id/filename"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="4sp"
-            android:gravity="start"
-            android:text="大威天龙abracadabraaaaaaaa.mp4"
-            android:textSize="16sp"
-            android:scrollHorizontally="true"
+            android:layout_marginEnd="4dp"
             android:ellipsize="end"
+            android:gravity="start"
             android:maxLines="1"
-            app:layout_constraintStart_toStartOf="parent"
+            android:scrollHorizontally="true"
+            android:text="test.txt"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toTopOf="@id/progress_bar"
             app:layout_constraintEnd_toStartOf="@id/percent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/progress_bar" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/percent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="end"
-            android:text="0%"
+            android:text="30"
             android:textSize="12sp"
             app:layout_constraintBaseline_toBaselineOf="@id/filename"
+            app:layout_constraintBottom_toTopOf="@id/progress_bar"
+            app:layout_constraintEnd_toStartOf="@id/percentMark"
             app:layout_constraintStart_toEndOf="@id/filename"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/percentMark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:text="%"
+            android:textSize="12sp"
+            app:layout_constraintBaseline_toBaselineOf="@id/filename"
+            app:layout_constraintStart_toEndOf="@id/percent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toTopOf="@id/progress_bar" />
@@ -67,6 +80,7 @@
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:progress="30"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/filename"
@@ -74,15 +88,42 @@
 
         <TextView
             android:id="@+id/size"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="start"
-            android:text="400.0MB / 约60分钟"
+            android:text="400.0MB"
             android:textSize="12sp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/speed"
+            app:layout_constraintEnd_toStartOf="@id/size_status_separator"
             app:layout_constraintTop_toBottomOf="@id/progress_bar"
             app:layout_constraintBottom_toBottomOf="parent" />
+
+        <TextView
+            android:id="@+id/size_status_separator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="2dp"
+            android:text="/"
+            android:textSize="12sp"
+            app:layout_constraintStart_toEndOf="@id/size"
+            app:layout_constraintEnd_toStartOf="@id/status"
+            app:layout_constraintTop_toBottomOf="@id/progress_bar"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:scrollHorizontally="true"
+            android:text="30 minute(s)"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/speed"
+            app:layout_constraintStart_toEndOf="@id/size_status_separator"
+            app:layout_constraintTop_toBottomOf="@id/progress_bar" />
 
         <TextView
             android:id="@+id/speed"
@@ -91,7 +132,7 @@
             android:gravity="end"
             android:text="1024KB/s"
             android:textSize="12sp"
-            app:layout_constraintStart_toEndOf="@id/size"
+            app:layout_constraintStart_toEndOf="@id/status"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/progress_bar"
             app:layout_constraintBottom_toBottomOf="parent" />
@@ -113,7 +154,7 @@
             android:background="@drawable/ic_suspend"
             android:layout_width="34dp"
             android:layout_height="34dp"
-            android:layout_marginEnd="8dp"
+            android:onClick="toggleTaskSuspension"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/bn_interrupt"
             app:layout_constraintTop_toTopOf="parent"
@@ -124,6 +165,8 @@
             android:background="@drawable/ic_delete"
             android:layout_width="34dp"
             android:layout_height="34dp"
+            android:layout_marginStart="8dp"
+            android:onClick="interruptTask"
             app:layout_constraintStart_toEndOf="@id/bn_toggle_suspension"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"

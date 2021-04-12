@@ -1,5 +1,7 @@
 package computing.project.wififiletransfer.model;
 
+import android.annotation.SuppressLint;
+
 import androidx.annotation.NonNull;
 
 import java.io.File;
@@ -49,6 +51,17 @@ public class FileTransfer implements Serializable, Cloneable {
 
     public long getFileSize() {
         return fileSize;
+    }
+
+    @SuppressLint("DefaultLocale")
+    public String getFileSizeText() {
+        if (fileSize >= 1024 * 1024 * 1024)
+            return String.format("%.1fGB", fileSize / 1024.0 / 1024 / 1024);
+        if (fileSize >= 1024 * 1024)
+            return String.format("%.1fMB", fileSize / 1024.0 / 1024);
+        if (fileSize >= 1024)
+            return String.format("%.1fKB", fileSize / 1024.0);
+        return fileSize + "B";
     }
 
     public void setFileSize(long fileSize) {
