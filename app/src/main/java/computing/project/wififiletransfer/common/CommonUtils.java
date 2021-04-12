@@ -26,7 +26,8 @@ public class CommonUtils {
     public static String getRemainingTimeText(long remainingTime) {
         for (int i = 0; i < remainingTimeUnitText.length; ++i)
             if (remainingTime >= remainingTimeUnitBound[i]) {
-                remainingTime /= remainingTimeUnitBound[i] > 0 ? remainingTimeUnitBound[i] : 1;
+                if (remainingTimeUnitBound[i] > 0)
+                    remainingTime /= remainingTimeUnitBound[i];
                 return remainingTime + " " + remainingTimeUnitText[i];
             }
         return "Error";

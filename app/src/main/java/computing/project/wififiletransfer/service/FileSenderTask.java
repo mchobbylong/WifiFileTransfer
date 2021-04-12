@@ -112,7 +112,7 @@ public class FileSenderTask implements Runnable {
         } catch (InterruptedException e) {
             Log.i(TAG, "文件发送已中断");
             Thread.currentThread().interrupt();
-            listener.onTransferFailed(fileTransfer, new Exception("文件发送已取消"));
+            listener.onTransferFailed(fileTransfer, new Exception("File transfer is cancelled"));
         } catch (Exception e) {
             Log.e(TAG, "文件发送异常：" + e.getMessage());
             e.printStackTrace();

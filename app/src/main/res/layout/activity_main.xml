@@ -1,61 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/textView2"
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guide_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="50dp"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.12" />
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="Multimedia Sharing"
         android:textColor="#3F51B5"
-        android:textSize="30dip"
-        app:layout_constraintBottom_toTopOf="@id/imageView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        android:textSize="30sp"
+        app:layout_constraintVertical_weight="0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/guide_title" />
+
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guide_title_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.25" />
 
     <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="165dp"
+        android:id="@+id/iv_title_icon"
+        android:layout_width="0dp"
         android:layout_height="120dp"
-        android:layout_margin="50dp"
-        app:layout_constraintBottom_toTopOf="@+id/btn_sender"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/guide_title_icon"
         app:srcCompat="@drawable/sharing1" />
 
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guide_bn_send"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.50" />
 
     <Button
         android:id="@+id/btn_sender"
         android:layout_width="220dp"
         android:layout_height="60dp"
-        android:layout_margin="50dp"
         android:backgroundTint="#7E03A9F4"
         android:onClick="startFileSenderActivity"
-        android:text="File Sender"
-        app:layout_constraintBottom_toTopOf="@id/btn_receiver"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        android:text="Sender"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/guide_bn_send"
+        app:layout_constraintBottom_toTopOf="@id/btn_receiver" />
 
     <Button
         android:id="@+id/btn_receiver"
         android:layout_width="220dp"
         android:layout_height="60dp"
-        android:layout_margin="50dp"
+        android:layout_marginTop="35dp"
         android:backgroundTint="#B43F51B5"
         android:onClick="startFileReceiverActivity"
-        android:text="File Receiver"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:text="Receiver"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btn_sender" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -5,12 +5,12 @@ import computing.project.wififiletransfer.model.FileTransfer;
 public interface OnTransferChangeListener {
 
     /**
-     * 如果待发送的文件还没计算MD5码，则在开始计算MD5码时回调
+     * 开始计算MD5码时回调
      */
     void onStartComputeMD5(FileTransfer fileTransfer);
 
     /**
-     * 开始传输
+     * 开始传输时回调
      */
     void onStartTransfer(FileTransfer fileTransfer);
 

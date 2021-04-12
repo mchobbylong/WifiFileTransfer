@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.core.content.res.ResourcesCompat;
 
@@ -36,7 +35,7 @@ public class FileSenderActivity extends BaseActivity {
 
     private Future taskFuture;
 
-    private OnTransferChangeListener onTransferChangeListener = new OnTransferChangeListener() {
+    private final OnTransferChangeListener onTransferChangeListener = new OnTransferChangeListener() {
 
         @Override
         public void onStartComputeMD5(final FileTransfer fileTransfer) {
@@ -112,7 +111,7 @@ public class FileSenderActivity extends BaseActivity {
                         progressBar.setProgress(100);
                         status.setText("Transfer succeed");
                         status.setTextColor(getResources().getColor(R.color.colorSuccess));
-                        Toast.makeText(FileSenderActivity.this, "Transfer succeed", Toast.LENGTH_SHORT).show();
+                        showToast("Transfer succeed");
 
                         // 启用选择文件的按钮
                         buttonSelectFile.setEnabled(true);
@@ -136,7 +135,7 @@ public class FileSenderActivity extends BaseActivity {
                         String statusText = "Transfer failed: " + e.getMessage();
                         status.setText(statusText);
                         status.setTextColor(Color.RED);
-                        Toast.makeText(FileSenderActivity.this, statusText, Toast.LENGTH_SHORT).show();
+                        showToast(statusText);
 
                         // 启用选择文件的按钮
                         buttonSelectFile.setEnabled(true);
@@ -230,7 +229,7 @@ public class FileSenderActivity extends BaseActivity {
                     buttonSelectFile.setEnabled(false);
 
                     FileTransfer fileTransfer = new FileTransfer(file);
-                    Log.i(TAG, "Files to be sent：" + fileTransfer);
+                    Log.i(TAG, "File to be sent：" + fileTransfer);
                     task = new FileSenderTask(fileTransfer, serverIp.getText().toString(), onTransferChangeListener);
                     taskFuture = ((CoreApplication) this.getApplication()).threadPool.submit(task);
                 }

@@ -1,7 +1,6 @@
 package computing.project.wififiletransfer;
 
 import android.annotation.SuppressLint;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -12,7 +11,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.core.content.res.ResourcesCompat;
 
@@ -113,7 +111,7 @@ public class FileReceiverActivity extends BaseActivity {
                     if (isCreated()) {
                         status.setText("Transfer succeed");
                         status.setTextColor(getResources().getColor(R.color.colorSuccess));
-                        Toast.makeText(FileReceiverActivity.this, "Transfer succeed", Toast.LENGTH_SHORT).show();
+                        showToast("Transfer succeed");
 
                         // 禁用两个按钮
                         buttonSuspend.setEnabled(false);
@@ -129,7 +127,7 @@ public class FileReceiverActivity extends BaseActivity {
                         // 如果这是图片，则调用 Glide 显示图片
                         BitmapFactory.Options bitmapOpts = new BitmapFactory.Options();
                         bitmapOpts.inJustDecodeBounds = true;
-                        Bitmap _temp = BitmapFactory.decodeFile(fileTransfer.getFilePath(), bitmapOpts);
+                        BitmapFactory.decodeFile(fileTransfer.getFilePath(), bitmapOpts);
                         if (bitmapOpts.outHeight != -1 && bitmapOpts.outWidth != -1)
                             Glide.with(FileReceiverActivity.this).load(fileTransfer.getFilePath()).into(iv_image);
                         else
@@ -149,7 +147,7 @@ public class FileReceiverActivity extends BaseActivity {
                         String statusText = "Transfer failed: " + e.getMessage();
                         status.setText(statusText);
                         status.setTextColor(Color.RED);
-                        Toast.makeText(FileReceiverActivity.this, statusText, Toast.LENGTH_SHORT).show();
+                        showToast(statusText);
 
                         // 禁用两个按钮
                         buttonSuspend.setEnabled(false);
@@ -160,7 +158,7 @@ public class FileReceiverActivity extends BaseActivity {
                 }
             });
         }
-    };
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -217,7 +215,7 @@ public class FileReceiverActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (taskFuture != null) {
-            Log.i(TAG, "Canceling receiving thread");
+            Log.i(TAG, "正在取消接收端线程");
             taskFuture.cancel(true);
         }
     }

@@ -37,7 +37,7 @@ public class WifiLManager {
     }
 
     /**
-     * 获取连接 WiFi 后设备自身的 IP 地址（作为客户端、或作为热点提供者
+     * 获取连接 WiFi 后设备自身的 IP 地址（作为客户端、或作为热点提供者）
      *
      * @param context 上下文
      * @return IP地址

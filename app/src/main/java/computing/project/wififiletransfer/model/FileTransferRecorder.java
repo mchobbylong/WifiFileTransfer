@@ -18,7 +18,7 @@ public class FileTransferRecorder {
     private static final String TABLE_NAME = "transfer";
 
 
-    private class DBOpenHelper extends SQLiteOpenHelper {
+    private static class DBOpenHelper extends SQLiteOpenHelper {
         public DBOpenHelper(Context context) {
             super(context, context.getFilesDir().toString() + "file_transfer.db3", null, DB_VERSION);
         }
@@ -41,7 +41,7 @@ public class FileTransferRecorder {
         }
     }
 
-    private SQLiteDatabase db;
+    private final SQLiteDatabase db;
 
     public FileTransferRecorder(Context context) throws SQLiteException {
         db = (new DBOpenHelper(context)).getReadableDatabase();
@@ -59,7 +59,7 @@ public class FileTransferRecorder {
         ret.setFileName(cursor.getString(cursor.getColumnIndex("filename")));
         ret.setProgress(cursor.getLong(cursor.getColumnIndex("progress")));
         ret.setFileSize(cursor.getLong(cursor.getColumnIndex("size")));
-        Log.d(TAG, "onDbQuery: " + ret);
+        cursor.close();
         return ret;
     }
 

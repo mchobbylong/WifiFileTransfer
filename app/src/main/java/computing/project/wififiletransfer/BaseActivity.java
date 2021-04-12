@@ -1,10 +1,7 @@
 package computing.project.wififiletransfer;
 
 import android.annotation.SuppressLint;
-import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
@@ -24,11 +21,7 @@ public class BaseActivity extends AppCompatActivity {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
-    protected void bindService(Class<? extends Service> service, ServiceConnection serviceConnection) {
-        bindService(new Intent(this, service), serviceConnection, Context.BIND_AUTO_CREATE);
-    }
-
-    protected void startActivity(Class c) {
+    protected void startActivity(Class<? extends AppCompatActivity> c) {
         startActivity(new Intent(this, c));
     }
 

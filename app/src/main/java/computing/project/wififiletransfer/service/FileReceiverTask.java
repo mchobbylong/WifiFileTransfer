@@ -81,8 +81,7 @@ public class FileReceiverTask implements Runnable {
                     while (!Thread.currentThread().isInterrupted() && client == null) {
                         try {
                             client = serverSocket.accept();
-                        } catch (SocketTimeoutException e) {
-                        }
+                        } catch (SocketTimeoutException ignored) {}
                     }
                     if (Thread.currentThread().isInterrupted())
                         throw new InterruptedException();
@@ -92,7 +91,7 @@ public class FileReceiverTask implements Runnable {
                     fileTransfer = (FileTransfer) objectInputStream.readObject();
                     Log.i(TAG, "待接收的文件：" + fileTransfer);
                     if (fileTransfer == null)
-                        throw new Exception("发送端传来的信息有误");
+                        throw new Exception("Information received from sender is damaged");
 
                     // 判断以前有没有传过相同的文件（用fileTransfer.md5）
                     //     如果以前传过，从记录里获取上次成功传输的位置（fileTransfer.progress）和路径
@@ -130,9 +129,9 @@ public class FileReceiverTask implements Runnable {
                         recorder.update(fileTransfer);
                     }
                     if (Thread.currentThread().isInterrupted())
-                        throw new InterruptedException("文件传输被中断");
+                        throw new InterruptedException("File transfer is cancelled");
                     if (fileTransfer.getProgress() < fileTransfer.getFileSize())
-                        throw new Exception("传输被发送端中断");
+                        throw new Exception("File transfer is cancelled by sender");
                     Log.i(TAG, "文件接收成功");
                     monitor.stop();
                     recorder.delete(fileTransfer.getMd5());
@@ -162,7 +161,7 @@ public class FileReceiverTask implements Runnable {
                         if (oldMd5.equals(fileTransfer.getMd5()))
                             listener.onTransferSucceed(fileTransfer);
                         else
-                            listener.onTransferFailed(fileTransfer, new Exception("MD5 不一致"));
+                            listener.onTransferFailed(fileTransfer, new Exception("MD5 is inconsistent"));
                     }
                     cleanUpClient();
                     file = null;
