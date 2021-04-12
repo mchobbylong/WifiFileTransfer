@@ -191,7 +191,11 @@ public class FileSenderActivity extends BaseActivity {
         progressBar = progressView.findViewById(R.id.progress_bar);
         progressBar.setMax(100);
         buttonSuspend = progressView.findViewById(R.id.bn_toggle_suspension);
+        buttonSuspend.setVisibility(View.VISIBLE);
         buttonInterrupt = progressView.findViewById(R.id.bn_interrupt);
+        buttonInterrupt.setVisibility(View.VISIBLE);
+        Button buttonOpenFile = progressView.findViewById(R.id.bn_open_file);
+        buttonOpenFile.setVisibility(View.GONE);
     }
 
     @Override
@@ -248,6 +252,5 @@ public class FileSenderActivity extends BaseActivity {
         taskFuture.cancel(true);
         task = null;
         taskFuture = null;
-        buttonSelectFile.setEnabled(true);
     }
 }

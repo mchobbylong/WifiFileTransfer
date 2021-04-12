@@ -33,6 +33,8 @@ public class FileReceiverActivity extends BaseActivity {
 
     private Future taskFuture;
 
+    private FileTransfer receivedFile;
+
     private class OnTransferChangeListener implements computing.project.wififiletransfer.common.OnTransferChangeListener {
 
         @Override
@@ -48,6 +50,11 @@ public class FileReceiverActivity extends BaseActivity {
                         status.setText("");
                         status.setTextColor(getResources().getColor(android.R.color.tab_indicator_text));
                         speed.setText("0KB/s");
+
+                        // 隐藏打开文件的按钮，并显示两个控制按钮
+                        buttonOpenFile.setVisibility(View.GONE);
+                        buttonSuspend.setVisibility(View.VISIBLE);
+                        buttonInterrupt.setVisibility(View.VISIBLE);
 
                         // 启用两个按钮
                         buttonSuspend.setEnabled(true);
@@ -98,6 +105,7 @@ public class FileReceiverActivity extends BaseActivity {
 
         @Override
         public void onTransferSucceed(final FileTransfer fileTransfer) {
+            receivedFile = fileTransfer;
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -111,6 +119,11 @@ public class FileReceiverActivity extends BaseActivity {
                         buttonInterrupt.setEnabled(false);
                         buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete_disabled, null));
 
+                        // 隐藏两个进度控制按钮，并显示打开文件的按钮
+                        buttonSuspend.setVisibility(View.GONE);
+                        buttonInterrupt.setVisibility(View.GONE);
+                        buttonOpenFile.setVisibility(View.VISIBLE);
+
                         // 如果这是图片，则调用 Glide 显示图片
                         BitmapFactory.Options bitmapOpts = new BitmapFactory.Options();
                         bitmapOpts.inJustDecodeBounds = true;
@@ -118,7 +131,7 @@ public class FileReceiverActivity extends BaseActivity {
                         if (bitmapOpts.outHeight != -1 && bitmapOpts.outWidth != -1)
                             Glide.with(FileReceiverActivity.this).load(fileTransfer.getFilePath()).into(iv_image);
                         else
-                            CommonUtils.openFileByPath(FileReceiverActivity.this, fileTransfer.getFilePath());
+                            openReceivedFile(null);
                     }
                 }
             });
@@ -164,6 +177,7 @@ public class FileReceiverActivity extends BaseActivity {
     private TextView speed;
     private Button buttonSuspend;
     private Button buttonInterrupt;
+    private Button buttonOpenFile;
 
     private void initView() {
         setTitle("Receive Files");
@@ -185,8 +199,10 @@ public class FileReceiverActivity extends BaseActivity {
         speed.setText("");
         progressBar = progressView.findViewById(R.id.progress_bar);
         progressBar.setMax(100);
-        buttonSuspend = progressView.findViewById(R.id.bn_toggle_suspension);
-        buttonInterrupt = progressView.findViewById(R.id.bn_interrupt);
+        ViewGroup controlButtonGroup = progressView.findViewById(R.id.group_control_button);
+        buttonSuspend = controlButtonGroup.findViewById(R.id.bn_toggle_suspension);
+        buttonInterrupt = controlButtonGroup.findViewById(R.id.bn_interrupt);
+        buttonOpenFile = progressView.findViewById(R.id.bn_open_file);
 
         // TODO: ServerSocket.accept() 独立使用一条线程
         // 监听线程不可被用户中断，因此中断按钮暂不可用
@@ -221,4 +237,10 @@ public class FileReceiverActivity extends BaseActivity {
         task = null;
         taskFuture = null;
     }
+
+    public void openReceivedFile(View view) {
+        if (receivedFile == null) return;
+        CommonUtils.openFileByPath(this, receivedFile.getFilePath());
+    }
+
 }
