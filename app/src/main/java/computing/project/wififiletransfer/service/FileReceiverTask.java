@@ -121,15 +121,13 @@ public class FileReceiverTask implements Runnable {
                     byte[] buffer = new byte[Constants.TRANSFER_BUFFER_SIZE];
                     int size;
                     while (!Thread.currentThread().isInterrupted() && (size = inputStream.read(buffer)) != -1) {
-                        if (!suspended) {
-                            fileOutputStream.write(buffer, 0, size);
-                            fileTransfer.setProgress(fileTransfer.getProgress() + size);
-                            recorder.update(fileTransfer);
-                        } else {
+                        if (suspended)
                             synchronized (state) {
                                 while (suspended) state.wait();
                             }
-                        }
+                        fileOutputStream.write(buffer, 0, size);
+                        fileTransfer.setProgress(fileTransfer.getProgress() + size);
+                        recorder.update(fileTransfer);
                     }
                     if (Thread.currentThread().isInterrupted())
                         throw new InterruptedException("文件传输被中断");

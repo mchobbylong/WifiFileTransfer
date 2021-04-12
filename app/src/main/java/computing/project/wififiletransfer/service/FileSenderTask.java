@@ -95,14 +95,12 @@ public class FileSenderTask implements Runnable {
             byte[] buffer = new byte[Constants.TRANSFER_BUFFER_SIZE];
             int size;
             while ((!Thread.currentThread().isInterrupted()) && ((size = fileInputStream.read(buffer)) != -1)) {
-                if (!suspended) {
-                    outputStream.write(buffer, 0, size);
-                    fileTransfer.setProgress(fileTransfer.getProgress() + size);
-                } else {
+                if (suspended)
                     synchronized (state) {
                         while (suspended) state.wait();
                     }
-                }
+                outputStream.write(buffer, 0, size);
+                fileTransfer.setProgress(fileTransfer.getProgress() + size);
             }
             // 检查是不是传输被中断了
             if (Thread.currentThread().isInterrupted()) {
