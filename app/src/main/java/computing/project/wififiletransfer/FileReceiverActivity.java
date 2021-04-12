@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.core.content.res.ResourcesCompat;
 
@@ -112,6 +113,7 @@ public class FileReceiverActivity extends BaseActivity {
                     if (isCreated()) {
                         status.setText("Transfer succeed");
                         status.setTextColor(getResources().getColor(R.color.colorSuccess));
+                        Toast.makeText(FileReceiverActivity.this, "Transfer succeed", Toast.LENGTH_SHORT).show();
 
                         // 禁用两个按钮
                         buttonSuspend.setEnabled(false);
@@ -144,8 +146,10 @@ public class FileReceiverActivity extends BaseActivity {
                 @Override
                 public void run() {
                     if (isCreated()) {
-                        status.setText("Transfer failed: " + e.getMessage());
+                        String statusText = "Transfer failed: " + e.getMessage();
+                        status.setText(statusText);
                         status.setTextColor(Color.RED);
+                        Toast.makeText(FileReceiverActivity.this, statusText, Toast.LENGTH_SHORT).show();
 
                         // 禁用两个按钮
                         buttonSuspend.setEnabled(false);
