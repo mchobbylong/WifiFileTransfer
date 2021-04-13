@@ -5,6 +5,7 @@ android {
     defaultConfig {
         applicationId "computing.project.wififiletransfer"
         minSdkVersion 21
+        //noinspection OldTargetApi
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"

@@ -210,7 +210,7 @@ public class FileSenderActivity extends BaseActivity {
         }
     }
 
-    public void navToChose(View view) {
+    public void navToChose(View ignored) {
         FilePickerManager.INSTANCE
                 .from(this)
                 .enableSingleChoice()
@@ -237,7 +237,7 @@ public class FileSenderActivity extends BaseActivity {
         }
     }
 
-    public void toggleTaskSuspension(View view) {
+    public void toggleTaskSuspension(View ignored) {
         Log.d(TAG, "Toggle suspension received");
         if (task == null || taskFuture == null || taskFuture.isDone()) return;
         if (task.isSuspended()) {
@@ -249,7 +249,7 @@ public class FileSenderActivity extends BaseActivity {
         }
     }
 
-    public void interruptTask(View view) {
+    public void interruptTask(View ignored) {
         Log.d(TAG, "Interrupt received");
         if (task == null || taskFuture == null) return;
         taskFuture.cancel(true);

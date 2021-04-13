@@ -220,7 +220,7 @@ public class FileReceiverActivity extends BaseActivity {
         }
     }
 
-    public void toggleTaskSuspension(View view) {
+    public void toggleTaskSuspension(View ignored) {
         Log.d(TAG, "Toggle suspension received");
         if (task == null || taskFuture == null || taskFuture.isDone()) return;
         if (task.isSuspended()) {
@@ -232,7 +232,7 @@ public class FileReceiverActivity extends BaseActivity {
         }
     }
 
-    public void interruptTask(View view) {
+    public void interruptTask(View ignored) {
         Log.d(TAG, "Interrupt received");
         if (task == null || taskFuture == null) return;
         taskFuture.cancel(true);
@@ -240,7 +240,7 @@ public class FileReceiverActivity extends BaseActivity {
         taskFuture = null;
     }
 
-    public void openReceivedFile(View view) {
+    public void openReceivedFile(View ignored) {
         if (receivedFile == null) return;
         CommonUtils.openFileByPath(this, receivedFile.getFilePath());
     }

@@ -35,11 +35,11 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    public void startFileSenderActivity(View view) {
+    public void startFileSenderActivity(View ignored) {
         startActivity(FileSenderActivity.class);
     }
 
-    public void startFileReceiverActivity(View view) {
+    public void startFileReceiverActivity(View ignored) {
         startActivity(FileReceiverActivity.class);
     }
 

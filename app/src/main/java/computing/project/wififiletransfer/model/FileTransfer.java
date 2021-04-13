@@ -7,21 +7,21 @@ import androidx.annotation.NonNull;
 import java.io.File;
 import java.io.Serializable;
 
-public class FileTransfer implements Serializable, Cloneable {
+public class FileTransfer implements Serializable {
 
-    //文件名
+    // 文件名
     private String fileName;
 
-    //文件路径
+    // 文件路径
     private String filePath;
 
-    //文件大小
+    // 文件大小
     private long fileSize;
 
-    //MD5码
+    // MD5码
     private String md5;
 
-    //当前传输进度
+    // 当前传输进度
     private long progress;
 
     public FileTransfer() {}
@@ -91,15 +91,4 @@ public class FileTransfer implements Serializable, Cloneable {
                 '}';
     }
 
-    @NonNull
-    @Override
-    public FileTransfer clone() {
-        FileTransfer ret = new FileTransfer();
-        ret.setFileName(fileName);
-        ret.setFileSize(fileSize);
-        ret.setFilePath(filePath);
-        ret.setMd5(md5);
-        ret.setProgress(progress);
-        return ret;
-    }
 }

@@ -143,7 +143,7 @@
         android:id="@+id/group_control_button"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_marginStart="12dp"
+        android:layout_marginStart="8dp"
         app:layout_constraintStart_toEndOf="@id/group_progress_display"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/barrier_top"
@@ -152,8 +152,8 @@
         <Button
             android:id="@+id/bn_toggle_suspension"
             android:background="@drawable/ic_suspend"
-            android:layout_width="34dp"
-            android:layout_height="34dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:onClick="toggleTaskSuspension"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/bn_interrupt"
@@ -163,8 +163,8 @@
         <Button
             android:id="@+id/bn_interrupt"
             android:background="@drawable/ic_delete"
-            android:layout_width="34dp"
-            android:layout_height="34dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_marginStart="8dp"
             android:onClick="interruptTask"
             app:layout_constraintStart_toEndOf="@id/bn_toggle_suspension"
@@ -174,7 +174,7 @@
 
         <Button
             android:id="@+id/bn_open_file"
-            android:layout_width="76dp"
+            android:layout_width="68dp"
             android:layout_height="wrap_content"
             android:text="OPEN"
             android:backgroundTint="#A98BC34A"
