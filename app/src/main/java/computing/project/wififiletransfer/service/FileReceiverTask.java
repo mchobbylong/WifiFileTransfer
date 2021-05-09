@@ -1,8 +1,11 @@
 package computing.project.wififiletransfer.service;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
 
 import java.io.Closeable;
 import java.io.File;
@@ -17,6 +20,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+
+import computing.project.wififiletransfer.common.AESUtils;
 import computing.project.wififiletransfer.common.Constants;
 import computing.project.wififiletransfer.common.Md5Util;
 import computing.project.wififiletransfer.common.OnTransferChangeListener;
@@ -64,6 +71,7 @@ public class FileReceiverTask implements Runnable {
 
     public boolean isSuspended() { return suspended; }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void run() {
         File file = null;
@@ -124,7 +132,12 @@ public class FileReceiverTask implements Runnable {
                             synchronized (state) {
                                 while (suspended) state.wait();
                             }
-                        fileOutputStream.write(buffer, 0, size);
+                        /***for later use
+                         * SecretKey key = AESUtils.generateKey(128);
+                         * IvParameterSpec ivParameterSpec = AESUtils.generateIv();
+                        byte[] plainText = AESUtils.decrypt(buffer, key, ivParameterSpec);***/
+                        byte[] plainText = AESUtils.decrypt(buffer, AESUtils.getpublicKey(), AESUtils.generateIv());
+                        fileOutputStream.write(plainText, 0, size);
                         fileTransfer.setProgress(fileTransfer.getProgress() + size);
                         recorder.update(fileTransfer);
                     }

@@ -1,7 +1,10 @@
 package computing.project.wififiletransfer.service;
 
+import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
 
 import java.io.Closeable;
 import java.io.File;
@@ -14,6 +17,10 @@ import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+
+import computing.project.wififiletransfer.common.AESUtils;
 import computing.project.wififiletransfer.common.Constants;
 import computing.project.wififiletransfer.common.Md5Util;
 import computing.project.wififiletransfer.common.OnTransferChangeListener;
@@ -22,6 +29,7 @@ import computing.project.wififiletransfer.model.FileTransfer;
 
 public class FileSenderTask implements Runnable {
     private static final String TAG = "FileSenderTask";
+    private static final int IV_LENGTH_BYTE = 12;
 
     // 暂停功能相关
     private final Object state = new Object();
@@ -59,6 +67,7 @@ public class FileSenderTask implements Runnable {
 
     public boolean isSuspended() { return suspended; }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void run() {
         // 计算 MD5
@@ -99,7 +108,12 @@ public class FileSenderTask implements Runnable {
                     synchronized (state) {
                         while (suspended) state.wait();
                     }
-                outputStream.write(buffer, 0, size);
+                /***for later use
+                 * SecretKey key = AESUtils.generateKey(128);
+                 * IvParameterSpec ivParameterSpec = AESUtils.generateIv();
+                 *  byte[] ciphertext = AESUtils.encrypt(buffer, key, ivParameterSpe);***/
+                byte[] ciphertext = AESUtils.decrypt(buffer, AESUtils.getpublicKey(), AESUtils.generateIv());
+                outputStream.write(ciphertext, 0, size);
                 fileTransfer.setProgress(fileTransfer.getProgress() + size);
             }
             // 检查是不是传输被中断了
