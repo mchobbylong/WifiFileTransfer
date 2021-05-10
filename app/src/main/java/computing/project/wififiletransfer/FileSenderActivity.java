@@ -1,6 +1,7 @@
 package computing.project.wififiletransfer;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -232,9 +233,9 @@ public class FileSenderActivity extends BaseActivity {
                 File file = new File(path);
                 if (file.exists()) {
                     buttonSelectFile.setEnabled(false);
-
+                    SharedPreferences sp = this.getPreferences(MODE_PRIVATE);
                     FileTransfer fileTransfer = new FileTransfer(file);
-                    fileTransfer.setSenderName("TestName");
+                    fileTransfer.setSenderName(sp.getString("username", null));
                     Log.i(TAG, "File to be sent：" + fileTransfer);
                     task = new FileSenderTask(fileTransfer, serverIp.getText().toString(), onTransferChangeListener);
                     taskFuture = ((CoreApplication) this.getApplication()).threadPool.submit(task);

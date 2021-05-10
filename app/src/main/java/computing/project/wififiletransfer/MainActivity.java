@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.text.TextUtils;
 import android.view.MotionEvent;
 import android.view.View;
@@ -15,7 +14,6 @@ import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
-import computing.project.wififiletransfer.manager.WifiLManager;
 
 public class MainActivity extends BaseActivity {
 
