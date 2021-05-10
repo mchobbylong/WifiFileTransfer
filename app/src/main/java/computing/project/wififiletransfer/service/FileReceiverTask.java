@@ -133,6 +133,7 @@ public class FileReceiverTask implements Runnable {
                     listener.onStartTransfer(fileTransfer);
                     monitor = new SpeedMonitor(fileTransfer, listener);
                     monitor.start();
+
                     byte[] buffer = new byte[Constants.TRANSFER_BUFFER_SIZE];
                     int size;
                     while (!Thread.currentThread().isInterrupted() && (size = inputStream.read(buffer)) != -1) {
