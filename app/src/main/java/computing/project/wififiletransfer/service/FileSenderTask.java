@@ -79,6 +79,9 @@ public class FileSenderTask implements Runnable {
             objectOutputStream = new ObjectOutputStream(outputStream);
             objectOutputStream.writeObject(fileTransfer);
 
+            // 等待接收端的回复
+            listener.onReceiveFileTransfer(fileTransfer);
+
             // 接受来自接收端的 progress 值
             inputStream = socket.getInputStream();
             objectInputStream = new ObjectInputStream(inputStream);

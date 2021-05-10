@@ -62,6 +62,12 @@ public class FileReceiverTask implements Runnable {
         }
     }
 
+    private void tryResume() throws InterruptedException {
+        synchronized (state) {
+            while (suspended) state.wait();
+        }
+    }
+
     public boolean isSuspended() { return suspended; }
 
     @Override
@@ -93,6 +99,16 @@ public class FileReceiverTask implements Runnable {
                     if (fileTransfer == null)
                         throw new Exception("Information received from sender is damaged");
 
+                    // 等待用户同意/拒绝，暂停自己
+                    listener.onReceiveFileTransfer(fileTransfer);
+                    suspend();
+                    try {
+                        tryResume();
+                    } catch (InterruptedException e) {
+                        client = null;
+                        throw new InterruptedException("Transfer is rejected");
+                    }
+
                     // 判断以前有没有传过相同的文件（用fileTransfer.md5）
                     //     如果以前传过，从记录里获取上次成功传输的位置（fileTransfer.progress）和路径
                     //     如果没有传过，设置 fileTransfer.progress = 0 并初始化路径
@@ -120,10 +136,7 @@ public class FileReceiverTask implements Runnable {
                     byte[] buffer = new byte[Constants.TRANSFER_BUFFER_SIZE];
                     int size;
                     while (!Thread.currentThread().isInterrupted() && (size = inputStream.read(buffer)) != -1) {
-                        if (suspended)
-                            synchronized (state) {
-                                while (suspended) state.wait();
-                            }
+                        if (suspended) tryResume();
                         fileOutputStream.write(buffer, 0, size);
                         fileTransfer.setProgress(fileTransfer.getProgress() + size);
                         recorder.update(fileTransfer);

@@ -185,6 +185,31 @@
             app:layout_constraintTop_toTopOf="@id/group_control_button"
             app:layout_constraintBottom_toBottomOf="@id/group_control_button" />
 
+        <Button
+            android:id="@+id/bn_accept"
+            android:background="@drawable/ic_ok"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:visibility="gone"
+            android:onClick="acceptTransfer"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/bn_reject"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <Button
+            android:id="@+id/bn_reject"
+            android:background="@drawable/ic_cancel"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_marginStart="8dp"
+            android:visibility="gone"
+            android:onClick="interruptTask"
+            app:layout_constraintStart_toEndOf="@id/bn_accept"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.Guideline

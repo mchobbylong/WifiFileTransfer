@@ -10,6 +10,11 @@ public interface OnTransferChangeListener {
     void onStartComputeMD5(FileTransfer fileTransfer);
 
     /**
+     * 接收方接收到 FileTransfer 时回调
+     */
+    void onReceiveFileTransfer(FileTransfer fileTransfer);
+
+    /**
      * 开始传输时回调
      */
     void onStartTransfer(FileTransfer fileTransfer);

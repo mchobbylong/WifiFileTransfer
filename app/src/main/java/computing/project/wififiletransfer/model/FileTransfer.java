@@ -24,6 +24,9 @@ public class FileTransfer implements Serializable {
     // 当前传输进度
     private long progress;
 
+    // 发送方用户名
+    private String senderName;
+
     public FileTransfer() {}
 
     public FileTransfer(File file) {
@@ -79,6 +82,10 @@ public class FileTransfer implements Serializable {
     public long getProgress() { return progress; }
 
     public void setProgress(long progress) { this.progress = progress; }
+
+    public String getSenderName() { return senderName; }
+
+    public void setSenderName(String name) { this.senderName = name; }
 
     @NonNull
     @Override

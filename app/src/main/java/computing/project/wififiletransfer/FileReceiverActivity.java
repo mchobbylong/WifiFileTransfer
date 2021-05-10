@@ -37,67 +37,82 @@ public class FileReceiverActivity extends BaseActivity {
     private class OnTransferChangeListener implements computing.project.wififiletransfer.common.OnTransferChangeListener {
 
         @Override
+        public void onReceiveFileTransfer(final FileTransfer fileTransfer) {
+            runOnUiThread(() -> {
+                if (isCreated()) {
+                    filename.setText(fileTransfer.getFileName());
+                    progressText.setText("0");
+                    progressBar.setProgress(0);
+                    size.setText(fileTransfer.getFileSizeText());
+                    status.setText(String.format("From \"%s\", accept?", fileTransfer.getSenderName()));
+                    status.setTextColor(getResources().getColor(android.R.color.tab_indicator_text));
+                    speed.setText("0KB/s");
+
+                    // 隐藏打开文件、暂停和中止按钮，显示接收和拒绝按钮
+                    buttonOpenFile.setVisibility(View.GONE);
+                    buttonSuspend.setVisibility(View.GONE);
+                    buttonInterrupt.setVisibility(View.GONE);
+                    buttonAccept.setVisibility(View.VISIBLE);
+                    buttonReject.setVisibility(View.VISIBLE);
+
+                    // 启用接收和拒绝按钮
+                    buttonAccept.setEnabled(true);
+                    buttonAccept.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_ok, null));
+                    buttonReject.setEnabled(true);
+                    buttonReject.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_cancel, null));
+
+                    progressView.setVisibility(View.VISIBLE);
+                }
+            });
+        }
+
+        @Override
         public void onStartTransfer(final FileTransfer fileTransfer) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (isCreated()) {
-                        filename.setText(fileTransfer.getFileName());
-                        progressText.setText("0");
-                        progressBar.setProgress(0);
-                        size.setText(fileTransfer.getFileSizeText());
-                        status.setText("");
-                        status.setTextColor(getResources().getColor(android.R.color.tab_indicator_text));
-                        speed.setText("0KB/s");
+            runOnUiThread(() -> {
+                if (isCreated()) {
+                    status.setText("");
+                    status.setTextColor(getResources().getColor(android.R.color.tab_indicator_text));
 
-                        // 隐藏打开文件的按钮，并显示两个控制按钮
-                        buttonOpenFile.setVisibility(View.GONE);
-                        buttonSuspend.setVisibility(View.VISIBLE);
-                        buttonInterrupt.setVisibility(View.VISIBLE);
+                    // 隐藏接收和拒绝按钮，并显示两个控制按钮
+                    buttonAccept.setVisibility(View.GONE);
+                    buttonReject.setVisibility(View.GONE);
+                    buttonSuspend.setVisibility(View.VISIBLE);
+                    buttonInterrupt.setVisibility(View.VISIBLE);
 
-                        // 启用两个按钮
-                        buttonSuspend.setEnabled(true);
-                        buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend, null));
-                        buttonInterrupt.setEnabled(true);
-                        buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete, null));
-
-                        progressView.setVisibility(View.VISIBLE);
-                    }
+                    // 启用两个按钮
+                    buttonSuspend.setEnabled(true);
+                    buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend, null));
+                    buttonInterrupt.setEnabled(true);
+                    buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete, null));
                 }
             });
         }
 
         @Override
         public void onProgressChanged(final FileTransfer fileTransfer, final long totalTime, final int progress, final double instantSpeed, final long instantRemainingTime, final double averageSpeed, final long averageRemainingTime) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (isCreated()) {
-                        progressText.setText(String.valueOf(progress));
-                        progressBar.setProgress(progress);
-                        status.setText(CommonUtils.getRemainingTimeText(averageRemainingTime));
-                        speed.setText(CommonUtils.getSpeedText(instantSpeed));
-                    }
+            runOnUiThread(() -> {
+                if (isCreated()) {
+                    progressText.setText(String.valueOf(progress));
+                    progressBar.setProgress(progress);
+                    status.setText(CommonUtils.getRemainingTimeText(averageRemainingTime));
+                    speed.setText(CommonUtils.getSpeedText(instantSpeed));
                 }
             });
         }
 
         @Override
         public void onStartComputeMD5(final FileTransfer fileTransfer) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (isCreated()) {
-                        progressText.setText("100");
-                        progressBar.setProgress(100);
-                        status.setText("Validating MD5");
+            runOnUiThread(() -> {
+                if (isCreated()) {
+                    progressText.setText("100");
+                    progressBar.setProgress(100);
+                    status.setText("Validating MD5");
 
-                        // 禁用两个按钮
-                        buttonSuspend.setEnabled(false);
-                        buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend_disabled, null));
-                        buttonInterrupt.setEnabled(false);
-                        buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete_disabled, null));
-                    }
+                    // 禁用两个按钮
+                    buttonSuspend.setEnabled(false);
+                    buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend_disabled, null));
+                    buttonInterrupt.setEnabled(false);
+                    buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete_disabled, null));
                 }
             });
         }
@@ -105,51 +120,51 @@ public class FileReceiverActivity extends BaseActivity {
         @Override
         public void onTransferSucceed(final FileTransfer fileTransfer) {
             receivedFile = fileTransfer;
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (isCreated()) {
-                        status.setText("Transfer succeed");
-                        status.setTextColor(getResources().getColor(R.color.colorSuccess));
-                        showToast("Transfer succeed");
+            runOnUiThread(() -> {
+                if (isCreated()) {
+                    status.setText("Transfer succeed");
+                    status.setTextColor(getResources().getColor(R.color.colorSuccess));
+                    showToast("Transfer succeed");
 
-                        // 禁用两个按钮
-                        buttonSuspend.setEnabled(false);
-                        buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend_disabled, null));
-                        buttonInterrupt.setEnabled(false);
-                        buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete_disabled, null));
+                    // 禁用两个按钮
+                    buttonSuspend.setEnabled(false);
+                    buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend_disabled, null));
+                    buttonInterrupt.setEnabled(false);
+                    buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete_disabled, null));
 
-                        // 隐藏两个进度控制按钮，并显示打开文件的按钮
-                        buttonSuspend.setVisibility(View.GONE);
-                        buttonInterrupt.setVisibility(View.GONE);
-                        buttonOpenFile.setVisibility(View.VISIBLE);
+                    // 隐藏两个进度控制按钮，并显示打开文件的按钮
+                    buttonSuspend.setVisibility(View.GONE);
+                    buttonInterrupt.setVisibility(View.GONE);
+                    buttonOpenFile.setVisibility(View.VISIBLE);
 
-                        // 如果这是图片，则调用 Glide 显示图片
-                        BitmapFactory.Options bitmapOpts = new BitmapFactory.Options();
-                        bitmapOpts.inJustDecodeBounds = true;
-                        BitmapFactory.decodeFile(fileTransfer.getFilePath(), bitmapOpts);
-                        if (bitmapOpts.outHeight != -1 && bitmapOpts.outWidth != -1)
-                            Glide.with(FileReceiverActivity.this).load(fileTransfer.getFilePath()).into(iv_image);
-                        else
-                            openReceivedFile(null);
-                    }
+                    // 如果这是图片，则调用 Glide 显示图片
+                    BitmapFactory.Options bitmapOpts = new BitmapFactory.Options();
+                    bitmapOpts.inJustDecodeBounds = true;
+                    BitmapFactory.decodeFile(fileTransfer.getFilePath(), bitmapOpts);
+                    if (bitmapOpts.outHeight != -1 && bitmapOpts.outWidth != -1)
+                        Glide.with(FileReceiverActivity.this).load(fileTransfer.getFilePath()).into(iv_image);
+                    else
+                        openReceivedFile(null);
                 }
             });
         }
 
         @Override
         public void onTransferFailed(final FileTransfer fileTransfer, final Exception e) {
-            runOnUiThread(new Runnable() {
-                @SuppressLint("SetTextI18n")
-                @Override
-                public void run() {
-                    if (isCreated()) {
-                        String statusText = "Transfer failed: " + e.getMessage();
-                        status.setText(statusText);
-                        status.setTextColor(Color.RED);
-                        showToast(statusText);
+            runOnUiThread(() -> {
+                if (isCreated()) {
+                    String statusText = "Transfer failed: " + e.getMessage();
+                    status.setText(statusText);
+                    status.setTextColor(Color.RED);
+                    showToast(statusText);
 
-                        // 禁用两个按钮
+                    // 根据目前传输状态禁用两个按钮
+                    if (buttonAccept.getVisibility() == View.VISIBLE) {
+                        buttonAccept.setEnabled(false);
+                        buttonAccept.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_ok_disabled, null));
+                        buttonReject.setEnabled(false);
+                        buttonReject.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_cancel_disabled, null));
+                    } else {
                         buttonSuspend.setEnabled(false);
                         buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend_disabled, null));
                         buttonInterrupt.setEnabled(false);
@@ -180,6 +195,8 @@ public class FileReceiverActivity extends BaseActivity {
     private Button buttonSuspend;
     private Button buttonInterrupt;
     private Button buttonOpenFile;
+    private Button buttonAccept;
+    private Button buttonReject;
 
     private void initView() {
         setTitle("Receive Files");
@@ -204,7 +221,9 @@ public class FileReceiverActivity extends BaseActivity {
         ViewGroup controlButtonGroup = progressView.findViewById(R.id.group_control_button);
         buttonSuspend = controlButtonGroup.findViewById(R.id.bn_toggle_suspension);
         buttonInterrupt = controlButtonGroup.findViewById(R.id.bn_interrupt);
-        buttonOpenFile = progressView.findViewById(R.id.bn_open_file);
+        buttonOpenFile = controlButtonGroup.findViewById(R.id.bn_open_file);
+        buttonAccept = controlButtonGroup.findViewById(R.id.bn_accept);
+        buttonReject = controlButtonGroup.findViewById(R.id.bn_reject);
 
         // TODO: ServerSocket.accept() 独立使用一条线程
         // 监听线程不可被用户中断，因此中断按钮暂不可用
@@ -218,6 +237,10 @@ public class FileReceiverActivity extends BaseActivity {
             Log.i(TAG, "正在取消接收端线程");
             taskFuture.cancel(true);
         }
+    }
+
+    public void acceptTransfer(View ignored) {
+        task.resume();
     }
 
     public void toggleTaskSuspension(View ignored) {
