@@ -151,14 +151,14 @@
 
         <Button
             android:id="@+id/bn_toggle_suspension"
-            android:background="@drawable/ic_suspend"
             android:layout_width="30dp"
             android:layout_height="30dp"
+            android:background="@drawable/ic_suspend"
             android:onClick="toggleTaskSuspension"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/bn_interrupt"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <Button
             android:id="@+id/bn_interrupt"
