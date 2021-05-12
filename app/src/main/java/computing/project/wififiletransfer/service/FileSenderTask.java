@@ -1,7 +1,10 @@
 package computing.project.wififiletransfer.service;
 
+import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
 
 import java.io.Closeable;
 import java.io.File;
@@ -14,6 +17,10 @@ import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+
+import computing.project.wififiletransfer.common.AESUtils;
 import computing.project.wififiletransfer.common.Constants;
 import computing.project.wififiletransfer.common.Md5Util;
 import computing.project.wififiletransfer.common.OnTransferChangeListener;
@@ -41,6 +48,8 @@ public class FileSenderTask extends PauseableRunnable {
         this.listener = listener;
     }
 
+
+    @RequiresApi(Build.VERSION_CODES.O)
     @Override
     public void run() {
         // 计算 MD5
@@ -82,6 +91,8 @@ public class FileSenderTask extends PauseableRunnable {
             while ((!Thread.currentThread().isInterrupted()) && ((size = fileInputStream.read(buffer)) != -1)) {
                 if (suspended) tryResume();
                 outputStream.write(buffer, 0, size);
+                byte[] ciphertext = AESUtils.decrypt(buffer, AESUtils.getpublicKey(), AESUtils.generateIv());
+                outputStream.write(ciphertext, 0, size);
                 fileTransfer.setProgress(fileTransfer.getProgress() + size);
             }
             // 检查是不是传输被中断了

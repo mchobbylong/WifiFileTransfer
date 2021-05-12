@@ -1,7 +1,10 @@
 package computing.project.wififiletransfer.service;
 
+import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,6 +15,7 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.Socket;
 
+import computing.project.wififiletransfer.common.AESUtils;
 import computing.project.wififiletransfer.common.Constants;
 import computing.project.wififiletransfer.common.Md5Util;
 import computing.project.wififiletransfer.common.OnTransferChangeListener;
@@ -40,6 +44,7 @@ public class FileReceiverTask extends PauseableRunnable {
         this.recorder = recorder;
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @Override
     public void run() {
         File file = null;
@@ -91,7 +96,8 @@ public class FileReceiverTask extends PauseableRunnable {
             int size;
             while (!Thread.currentThread().isInterrupted() && (size = inputStream.read(buffer)) != -1) {
                 if (suspended) tryResume();
-                fileOutputStream.write(buffer, 0, size);
+                byte[] plainText = AESUtils.decrypt(buffer, AESUtils.getpublicKey(), AESUtils.generateIv());
+                fileOutputStream.write(plainText, 0, plainText.length);
                 fileTransfer.setProgress(fileTransfer.getProgress() + size);
                 recorder.update(fileTransfer);
             }
