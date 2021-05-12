@@ -1,26 +1,28 @@
 package computing.project.wififiletransfer;
 
-import android.annotation.SuppressLint;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import androidx.core.content.res.ResourcesCompat;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 
+import java.net.Socket;
+import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.Future;
 
 import computing.project.wififiletransfer.common.CommonUtils;
 import computing.project.wififiletransfer.manager.WifiLManager;
 import computing.project.wififiletransfer.model.FileTransfer;
+import computing.project.wififiletransfer.model.FileTransferRecorder;
+import computing.project.wififiletransfer.model.ProgressViewAdapter;
+import computing.project.wififiletransfer.model.ProgressViewModel;
+import computing.project.wififiletransfer.service.FileReceiverService;
 import computing.project.wififiletransfer.service.FileReceiverTask;
 
 
@@ -28,40 +30,48 @@ public class FileReceiverActivity extends BaseActivity {
 
     private static final String TAG = "ReceiverActivity";
 
-    private FileReceiverTask task;
+    private Future serviceFuture;
 
-    private Future taskFuture;
+    private final List<ProgressViewModel> receivers = new Vector<>();
 
-    private FileTransfer receivedFile;
+    private class OnNewTransferListener implements computing.project.wififiletransfer.common.OnNewTransferListener {
+        @Override
+        public void onNewTransfer(Socket client) {
+            runOnUiThread(() -> {
+                ProgressViewModel model = new ProgressViewModel(FileReceiverActivity.this);
+                receivers.add(0, model);
+                adapter.notifyItemInserted(0);
+                recyclerView.smoothScrollToPosition(0);
+                model.task = new FileReceiverTask(client, new OnTransferChangeListener(model), recorder);
+                model.taskFuture = ((CoreApplication) getApplication()).threadPool.submit(model.task);
+            });
+        }
+    }
 
     private class OnTransferChangeListener implements computing.project.wififiletransfer.common.OnTransferChangeListener {
+        ProgressViewModel model;
+
+        public OnTransferChangeListener(ProgressViewModel model) {
+            super();
+            this.model = model;
+        }
 
         @Override
         public void onReceiveFileTransfer(final FileTransfer fileTransfer) {
             runOnUiThread(() -> {
                 if (isCreated()) {
-                    filename.setText(fileTransfer.getFileName());
-                    progressText.setText("0");
-                    progressBar.setProgress(0);
-                    size.setText(fileTransfer.getFileSizeText());
-                    status.setText(String.format("From \"%s\", accept?", fileTransfer.getSenderName()));
-                    status.setTextColor(getResources().getColor(android.R.color.tab_indicator_text));
-                    speed.setText("0KB/s");
+                    model.fileTransfer = fileTransfer;
+                    model.status = String.format("From \"%s\", accept?", fileTransfer.getSenderName());
+                    model.statusColor = getResources().getColor(R.color.colorOrange);
+                    model.state = ProgressViewModel.ControlButtonState.CONFIRM;
 
-                    // 隐藏打开文件、暂停和中止按钮，显示接收和拒绝按钮
-                    buttonOpenFile.setVisibility(View.GONE);
-                    buttonSuspend.setVisibility(View.GONE);
-                    buttonInterrupt.setVisibility(View.GONE);
-                    buttonAccept.setVisibility(View.VISIBLE);
-                    buttonReject.setVisibility(View.VISIBLE);
-
-                    // 启用接收和拒绝按钮
-                    buttonAccept.setEnabled(true);
-                    buttonAccept.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_ok, null));
-                    buttonReject.setEnabled(true);
-                    buttonReject.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_cancel, null));
-
-                    progressView.setVisibility(View.VISIBLE);
+                    int position = receivers.indexOf(model);
+                    adapter.notifyItemChanged(position, new ProgressViewModel.Field[]{
+                            ProgressViewModel.Field.filename,
+                            ProgressViewModel.Field.size,
+                            ProgressViewModel.Field.status,
+                            ProgressViewModel.Field.state,
+                    });
                 }
             });
         }
@@ -70,20 +80,14 @@ public class FileReceiverActivity extends BaseActivity {
         public void onStartTransfer(final FileTransfer fileTransfer) {
             runOnUiThread(() -> {
                 if (isCreated()) {
-                    status.setText("");
-                    status.setTextColor(getResources().getColor(android.R.color.tab_indicator_text));
-
-                    // 隐藏接收和拒绝按钮，并显示两个控制按钮
-                    buttonAccept.setVisibility(View.GONE);
-                    buttonReject.setVisibility(View.GONE);
-                    buttonSuspend.setVisibility(View.VISIBLE);
-                    buttonInterrupt.setVisibility(View.VISIBLE);
-
-                    // 启用两个按钮
-                    buttonSuspend.setEnabled(true);
-                    buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend, null));
-                    buttonInterrupt.setEnabled(true);
-                    buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete, null));
+                    model.status = "";
+                    model.statusColor = getResources().getColor(android.R.color.tab_indicator_text);
+                    model.state = ProgressViewModel.ControlButtonState.TRANSIT;
+                    int position = receivers.indexOf(model);
+                    adapter.notifyItemChanged(position, new ProgressViewModel.Field[]{
+                            ProgressViewModel.Field.status,
+                            ProgressViewModel.Field.state,
+                    });
                 }
             });
         }
@@ -92,10 +96,15 @@ public class FileReceiverActivity extends BaseActivity {
         public void onProgressChanged(final FileTransfer fileTransfer, final long totalTime, final int progress, final double instantSpeed, final long instantRemainingTime, final double averageSpeed, final long averageRemainingTime) {
             runOnUiThread(() -> {
                 if (isCreated()) {
-                    progressText.setText(String.valueOf(progress));
-                    progressBar.setProgress(progress);
-                    status.setText(CommonUtils.getRemainingTimeText(averageRemainingTime));
-                    speed.setText(CommonUtils.getSpeedText(instantSpeed));
+                    model.progress = progress;
+                    model.status = CommonUtils.getRemainingTimeText(averageRemainingTime);
+                    model.speed = instantSpeed;
+                    int position = receivers.indexOf(model);
+                    adapter.notifyItemChanged(position, new ProgressViewModel.Field[]{
+                            ProgressViewModel.Field.progress,
+                            ProgressViewModel.Field.status,
+                            ProgressViewModel.Field.speed,
+                    });
                 }
             });
         }
@@ -104,38 +113,34 @@ public class FileReceiverActivity extends BaseActivity {
         public void onStartComputeMD5(final FileTransfer fileTransfer) {
             runOnUiThread(() -> {
                 if (isCreated()) {
-                    progressText.setText("100");
-                    progressBar.setProgress(100);
-                    status.setText("Validating MD5");
-
-                    // 禁用两个按钮
-                    buttonSuspend.setEnabled(false);
-                    buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend_disabled, null));
-                    buttonInterrupt.setEnabled(false);
-                    buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete_disabled, null));
+                    model.progress = 100;
+                    model.status = "Validating MD5";
+                    model.state = ProgressViewModel.ControlButtonState.TRANSIT_DISABLED;
+                    int position = receivers.indexOf(model);
+                    adapter.notifyItemChanged(position, new ProgressViewModel.Field[]{
+                            ProgressViewModel.Field.progress,
+                            ProgressViewModel.Field.status,
+                            ProgressViewModel.Field.state,
+                    });
                 }
             });
         }
 
         @Override
         public void onTransferSucceed(final FileTransfer fileTransfer) {
-            receivedFile = fileTransfer;
             runOnUiThread(() -> {
                 if (isCreated()) {
-                    status.setText("Transfer succeed");
-                    status.setTextColor(getResources().getColor(R.color.colorSuccess));
                     showToast("Transfer succeed");
 
-                    // 禁用两个按钮
-                    buttonSuspend.setEnabled(false);
-                    buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend_disabled, null));
-                    buttonInterrupt.setEnabled(false);
-                    buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete_disabled, null));
-
-                    // 隐藏两个进度控制按钮，并显示打开文件的按钮
-                    buttonSuspend.setVisibility(View.GONE);
-                    buttonInterrupt.setVisibility(View.GONE);
-                    buttonOpenFile.setVisibility(View.VISIBLE);
+                    model.fileTransfer = fileTransfer;
+                    model.status = "Transfer succeed";
+                    model.statusColor = getResources().getColor(R.color.colorSuccess);
+                    model.state = ProgressViewModel.ControlButtonState.DONE;
+                    int position = receivers.indexOf(model);
+                    adapter.notifyItemChanged(position, new ProgressViewModel.Field[]{
+                            ProgressViewModel.Field.status,
+                            ProgressViewModel.Field.state,
+                    });
 
                     // 如果这是图片，则调用 Glide 显示图片
                     BitmapFactory.Options bitmapOpts = new BitmapFactory.Options();
@@ -144,7 +149,7 @@ public class FileReceiverActivity extends BaseActivity {
                     if (bitmapOpts.outHeight != -1 && bitmapOpts.outWidth != -1)
                         Glide.with(FileReceiverActivity.this).load(fileTransfer.getFilePath()).into(iv_image);
                     else
-                        openReceivedFile(null);
+                        CommonUtils.openFileByPath(FileReceiverActivity.this, fileTransfer.getFilePath());
                 }
             });
         }
@@ -154,49 +159,39 @@ public class FileReceiverActivity extends BaseActivity {
             runOnUiThread(() -> {
                 if (isCreated()) {
                     String statusText = "Transfer failed: " + e.getMessage();
-                    status.setText(statusText);
-                    status.setTextColor(Color.RED);
                     showToast(statusText);
-
-                    // 根据目前传输状态禁用两个按钮
-                    if (buttonAccept.getVisibility() == View.VISIBLE) {
-                        buttonAccept.setEnabled(false);
-                        buttonAccept.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_ok_disabled, null));
-                        buttonReject.setEnabled(false);
-                        buttonReject.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_cancel_disabled, null));
-                    } else {
-                        buttonSuspend.setEnabled(false);
-                        buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend_disabled, null));
-                        buttonInterrupt.setEnabled(false);
-                        buttonInterrupt.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_delete_disabled, null));
-                    }
+                    model.status = statusText;
+                    model.statusColor = Color.RED;
+                    model.state = model.state == ProgressViewModel.ControlButtonState.CONFIRM
+                            ? ProgressViewModel.ControlButtonState.CONFIRM_DISABLED
+                            : (model.state == ProgressViewModel.ControlButtonState.TRANSIT
+                                ? ProgressViewModel.ControlButtonState.TRANSIT_DISABLED
+                                : ProgressViewModel.ControlButtonState.PAUSED_DISABLED);
+                    int position = receivers.indexOf(model);
+                    adapter.notifyItemChanged(position, new ProgressViewModel.Field[]{
+                            ProgressViewModel.Field.status,
+                            ProgressViewModel.Field.state,
+                    });
                 }
             });
         }
     }
+
+    private FileTransferRecorder recorder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_file_receiver);
         initView();
-        task = new FileReceiverTask(this, new OnTransferChangeListener());
-        taskFuture = ((CoreApplication) getApplication()).threadPool.submit(task);
+        recorder = new FileTransferRecorder(this);
+        FileReceiverService service = new FileReceiverService(new OnNewTransferListener());
+        serviceFuture = ((CoreApplication) getApplication()).threadPool.submit(service);
     }
 
-    private ViewGroup progressView;
     private ImageView iv_image;
-    private TextView progressText;
-    private TextView filename;
-    private ProgressBar progressBar;
-    private TextView size;
-    private TextView status;
-    private TextView speed;
-    private Button buttonSuspend;
-    private Button buttonInterrupt;
-    private Button buttonOpenFile;
-    private Button buttonAccept;
-    private Button buttonReject;
+    private RecyclerView recyclerView;
+    private ProgressViewAdapter adapter;
 
     private void initView() {
         setTitle("Receive Files");
@@ -204,68 +199,22 @@ public class FileReceiverActivity extends BaseActivity {
         TextView localIp = findViewById(R.id.tv_local_ip);
         localIp.setText(WifiLManager.getLocalIpAddress(this));
 
-        // 初始化进度条
-        progressView = findViewById(R.id.group_progress_view);
-        progressText = progressView.findViewById(R.id.percent);
-        progressText.setText("");
-        filename = progressView.findViewById(R.id.filename);
-        filename.setText("");
-        size = progressView.findViewById(R.id.size);
-        size.setText("");
-        status = progressView.findViewById(R.id.status);
-        status.setText("");
-        speed = progressView.findViewById(R.id.speed);
-        speed.setText("");
-        progressBar = progressView.findViewById(R.id.progress_bar);
-        progressBar.setMax(100);
-        ViewGroup controlButtonGroup = progressView.findViewById(R.id.group_control_button);
-        buttonSuspend = controlButtonGroup.findViewById(R.id.bn_toggle_suspension);
-        buttonInterrupt = controlButtonGroup.findViewById(R.id.bn_interrupt);
-        buttonOpenFile = controlButtonGroup.findViewById(R.id.bn_open_file);
-        buttonAccept = controlButtonGroup.findViewById(R.id.bn_accept);
-        buttonReject = controlButtonGroup.findViewById(R.id.bn_reject);
-
-        // TODO: ServerSocket.accept() 独立使用一条线程
-        // 监听线程不可被用户中断，因此中断按钮暂不可用
-        buttonInterrupt.setVisibility(View.GONE);
+        // 初始化 RecyclerView
+        recyclerView = findViewById(R.id.recycler);
+        adapter = new ProgressViewAdapter(this, receivers, recyclerView);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (taskFuture != null) {
+        for (ProgressViewModel model : receivers) {
+            model.taskFuture.cancel(true);
+        }
+        if (serviceFuture != null) {
             Log.i(TAG, "正在取消接收端线程");
-            taskFuture.cancel(true);
+            serviceFuture.cancel(true);
         }
-    }
-
-    public void acceptTransfer(View ignored) {
-        task.resume();
-    }
-
-    public void toggleTaskSuspension(View ignored) {
-        Log.d(TAG, "Toggle suspension received");
-        if (task == null || taskFuture == null || taskFuture.isDone()) return;
-        if (task.isSuspended()) {
-            task.resume();
-            buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_suspend, null));
-        } else {
-            task.suspend();
-            buttonSuspend.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_play, null));
-        }
-    }
-
-    public void interruptTask(View ignored) {
-        Log.d(TAG, "Interrupt received");
-        if (task == null || taskFuture == null) return;
-        taskFuture.cancel(true);
-        task = null;
-        taskFuture = null;
-    }
-
-    public void openReceivedFile(View ignored) {
-        if (receivedFile == null) return;
-        CommonUtils.openFileByPath(this, receivedFile.getFilePath());
+        recorder.close();
     }
 
 }

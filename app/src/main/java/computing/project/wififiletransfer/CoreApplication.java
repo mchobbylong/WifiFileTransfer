@@ -6,5 +6,5 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class CoreApplication extends Application {
-    public final ExecutorService threadPool = Executors.newFixedThreadPool(4);
+    public final ExecutorService threadPool = Executors.newFixedThreadPool(10);
 }

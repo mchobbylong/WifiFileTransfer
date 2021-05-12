@@ -10,22 +10,22 @@ import java.io.Serializable;
 public class FileTransfer implements Serializable {
 
     // 文件名
-    private String fileName;
+    private String fileName = "";
 
     // 文件路径
-    private String filePath;
+    private String filePath = "";
 
     // 文件大小
-    private long fileSize;
+    private long fileSize = 0;
 
     // MD5码
-    private String md5;
+    private String md5 = "";
 
     // 当前传输进度
-    private long progress;
+    private long progress = 0;
 
     // 发送方用户名
-    private String senderName;
+    private String senderName = "";
 
     public FileTransfer() {}
 

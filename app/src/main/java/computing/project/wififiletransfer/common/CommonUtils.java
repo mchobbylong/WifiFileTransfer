@@ -9,6 +9,7 @@ import android.os.Build;
 import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
 
 import java.io.File;
@@ -77,5 +78,10 @@ public class CommonUtils {
             Toast.makeText(context, "Error when trying to open this file", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
+    }
+
+    public static int dpToPixel(@NonNull Context context, float dp) {
+        final float scale = context.getResources().getDisplayMetrics().density;
+        return (int) (dp * scale + 0.5f);
     }
 }

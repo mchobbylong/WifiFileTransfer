@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/barrier_top"
@@ -202,7 +202,7 @@
             android:background="@drawable/ic_cancel"
             android:layout_width="26dp"
             android:layout_height="26dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="16dp"
             android:visibility="gone"
             android:onClick="interruptTask"
             app:layout_constraintStart_toEndOf="@id/bn_accept"

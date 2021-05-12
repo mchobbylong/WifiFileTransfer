@@ -20,12 +20,9 @@ import computing.project.wififiletransfer.common.OnTransferChangeListener;
 import computing.project.wififiletransfer.common.SpeedMonitor;
 import computing.project.wififiletransfer.model.FileTransfer;
 
-public class FileSenderTask implements Runnable {
-    private static final String TAG = "FileSenderTask";
+public class FileSenderTask extends PauseableRunnable {
 
-    // 暂停功能相关
-    private final Object state = new Object();
-    private volatile boolean suspended = false;
+    static final String TAG = "FileSenderTask";
 
     private final FileTransfer fileTransfer;
     private final String ipAddress;
@@ -43,21 +40,6 @@ public class FileSenderTask implements Runnable {
         this.ipAddress = ipAddress;
         this.listener = listener;
     }
-
-    public void suspend() {
-        suspended = true;
-        Log.i(TAG, "发送文件 " + fileTransfer.getFileName() + " 已暂停");
-    }
-
-    public void resume() {
-        suspended = false;
-        Log.i(TAG, "发送文件 " + fileTransfer.getFileName() + " 已继续");
-        synchronized (state) {
-            state.notifyAll();
-        }
-    }
-
-    public boolean isSuspended() { return suspended; }
 
     @Override
     public void run() {
@@ -98,10 +80,7 @@ public class FileSenderTask implements Runnable {
             byte[] buffer = new byte[Constants.TRANSFER_BUFFER_SIZE];
             int size;
             while ((!Thread.currentThread().isInterrupted()) && ((size = fileInputStream.read(buffer)) != -1)) {
-                if (suspended)
-                    synchronized (state) {
-                        while (suspended) state.wait();
-                    }
+                if (suspended) tryResume();
                 outputStream.write(buffer, 0, size);
                 fileTransfer.setProgress(fileTransfer.getProgress() + size);
             }
@@ -115,23 +94,13 @@ public class FileSenderTask implements Runnable {
         } catch (InterruptedException e) {
             Log.i(TAG, "文件发送已中断");
             Thread.currentThread().interrupt();
-            listener.onTransferFailed(fileTransfer, new Exception("文件发送已取消"));
+            listener.onTransferFailed(fileTransfer, new Exception("Transfer is cancelled"));
         } catch (Exception e) {
             Log.e(TAG, "文件发送异常：" + e.getMessage());
             e.printStackTrace();
             listener.onTransferFailed(fileTransfer, e);
         } finally {
             cleanUp();
-        }
-    }
-
-    private void closeStream(Closeable s) {
-        if (s != null) {
-            try {
-                s.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
