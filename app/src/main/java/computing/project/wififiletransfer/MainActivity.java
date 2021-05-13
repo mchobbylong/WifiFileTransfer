@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.view.MotionEvent;
 import android.view.View;
@@ -28,15 +29,15 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
 
         username = findViewById(R.id.et_username);
-        sp=this.getPreferences(MODE_PRIVATE);
+        sp = PreferenceManager.getDefaultSharedPreferences(this);
 
         // 从SharedPreference中检索用户名
-        name=sp.getString("username", null);
+        name = sp.getString("username", null);
         if (name == null) {
             name = "user" + System.currentTimeMillis();
-            SharedPreferences.Editor editor=sp.edit();
+            SharedPreferences.Editor editor = sp.edit();
             editor.putString("username", name);
-            editor.commit();
+            editor.apply();
         }
         username.setText(name);
 
@@ -50,9 +51,9 @@ public class MainActivity extends BaseActivity {
                     }
                     else{ // 新用户名，更新SharedPreference
                         name = username.getText().toString();
-                        SharedPreferences.Editor editor=sp.edit();
+                        SharedPreferences.Editor editor = sp.edit();
                         editor.putString("username", name);
-                        editor.commit();
+                        editor.apply();
                     }
                 }
             }

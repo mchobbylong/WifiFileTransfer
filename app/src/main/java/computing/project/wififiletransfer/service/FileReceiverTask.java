@@ -15,8 +15,9 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.Socket;
 
+import javax.crypto.SecretKey;
+
 import computing.project.wififiletransfer.common.AESUtils;
-import computing.project.wififiletransfer.common.Constants;
 import computing.project.wififiletransfer.common.Md5Util;
 import computing.project.wififiletransfer.common.OnTransferChangeListener;
 import computing.project.wififiletransfer.common.SpeedMonitor;
@@ -92,19 +93,32 @@ public class FileReceiverTask extends PauseableRunnable {
             monitor = new SpeedMonitor(fileTransfer, listener);
             monitor.start();
 
-            byte[] buffer = new byte[Constants.TRANSFER_BUFFER_SIZE];
-            int size;
-            while (!Thread.currentThread().isInterrupted() && (size = inputStream.read(buffer)) != -1) {
-                if (suspended) tryResume();
-                byte[] plainText = AESUtils.decrypt(buffer, AESUtils.getpublicKey(), AESUtils.generateIv());
-                fileOutputStream.write(plainText, 0, plainText.length);
-                fileTransfer.setProgress(fileTransfer.getProgress() + size);
+            int size, received;
+            SecretKey key = AESUtils.generateAESKey("abcdefghijklmnopqrstuvwxyz012345");
+            Integer cipherTextSize = (Integer) objectInputStream.readObject();
+            byte[] buffer = new byte[cipherTextSize];
+            while (cipherTextSize > 0) {
+                // Log.d(TAG, "Current cipherTextSize: " + cipherTextSize);
+                size = 0;
+                while (!Thread.currentThread().isInterrupted() && size < cipherTextSize && (received = inputStream.read(buffer, size, cipherTextSize - size)) != -1) {
+                    if (suspended) tryResume();
+                    // Log.d(TAG, "Buffer received: " + received);
+                    size += received;
+                }
+                if (Thread.currentThread().isInterrupted())
+                    throw new InterruptedException("File transfer is cancelled");
+                if (size < cipherTextSize)
+                    throw new Exception("File transfer is cancelled by sender");
+                byte[] plainContent = AESUtils.decrypt(buffer, cipherTextSize, key);
+                fileOutputStream.write(plainContent, 0, plainContent.length);
+                fileTransfer.setProgress(fileTransfer.getProgress() + plainContent.length);
                 recorder.update(fileTransfer);
+
+                cipherTextSize = (Integer) objectInputStream.readObject();
             }
-            if (Thread.currentThread().isInterrupted())
-                throw new InterruptedException("File transfer is cancelled");
-            if (fileTransfer.getProgress() < fileTransfer.getFileSize())
+            if (fileTransfer.getProgress() < fileTransfer.getFileSize()) {
                 throw new Exception("File transfer is cancelled by sender");
+            }
             Log.i(TAG, "文件接收成功");
             monitor.stop();
             recorder.delete(fileTransfer.getMd5());
@@ -113,6 +127,7 @@ public class FileReceiverTask extends PauseableRunnable {
             exception = e;
         } catch (Exception e) {
             exception = e;
+            e.printStackTrace();
         } finally {
             if (exception != null) {
                 if (fileTransfer != null)

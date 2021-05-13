@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -233,9 +234,9 @@ public class FileSenderActivity extends BaseActivity {
                 File file = new File(path);
                 if (file.exists()) {
                     buttonSelectFile.setEnabled(false);
-                    SharedPreferences sp = this.getPreferences(MODE_PRIVATE);
+                    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
                     FileTransfer fileTransfer = new FileTransfer(file);
-                    fileTransfer.setSenderName(sp.getString("username", null));
+                    fileTransfer.setSenderName(sp.getString("username", "Unknown"));
                     Log.i(TAG, "File to be sent：" + fileTransfer);
                     task = new FileSenderTask(fileTransfer, serverIp.getText().toString(), onTransferChangeListener);
                     taskFuture = ((CoreApplication) this.getApplication()).threadPool.submit(task);

@@ -6,7 +6,7 @@ import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
-import java.io.Closeable;
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +18,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
 
 import computing.project.wififiletransfer.common.AESUtils;
 import computing.project.wififiletransfer.common.Constants;
@@ -76,8 +75,12 @@ public class FileSenderTask extends PauseableRunnable {
             // 接受来自接收端的 progress 值
             inputStream = socket.getInputStream();
             objectInputStream = new ObjectInputStream(inputStream);
-            Long receivedProgress = (Long) objectInputStream.readObject();
-            fileTransfer.setProgress(receivedProgress);
+            try {
+                Long receivedProgress = (Long) objectInputStream.readObject();
+                fileTransfer.setProgress(receivedProgress);
+            } catch (EOFException e) {
+                throw new Exception("Transfer is rejected by receiver");
+            }
 
             // 使用 RandomAccessFile 类，并调用 .seek(progress) 指定续传的位置
             fileInputStream = new RandomAccessFile(new File(fileTransfer.getFilePath()), "r");
@@ -88,17 +91,22 @@ public class FileSenderTask extends PauseableRunnable {
             monitor.start();
             byte[] buffer = new byte[Constants.TRANSFER_BUFFER_SIZE];
             int size;
+            SecretKey key = AESUtils.generateAESKey("abcdefghijklmnopqrstuvwxyz012345");
             while ((!Thread.currentThread().isInterrupted()) && ((size = fileInputStream.read(buffer)) != -1)) {
                 if (suspended) tryResume();
-                outputStream.write(buffer, 0, size);
-                byte[] ciphertext = AESUtils.decrypt(buffer, AESUtils.getpublicKey(), AESUtils.generateIv());
-                outputStream.write(ciphertext, 0, size);
+                byte[] cipherText = AESUtils.encrypt(buffer, 0, size, key);
+
+                // 先将 cipherText 的长度发送给接收端，再发送 cipherText 的内容
+                objectOutputStream.writeObject(cipherText.length);
+                outputStream.write(cipherText);
                 fileTransfer.setProgress(fileTransfer.getProgress() + size);
             }
             // 检查是不是传输被中断了
             if (Thread.currentThread().isInterrupted()) {
                 throw new InterruptedException();
             }
+            // 发送结束信号给接收端
+            objectOutputStream.writeObject((int)0);
             Log.i(TAG, "文件发送成功");
             monitor.stop();
             listener.onTransferSucceed(fileTransfer);
