@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.DataInputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
@@ -21,6 +22,7 @@ import javax.crypto.SecretKey;
 
 import computing.project.wififiletransfer.common.AESUtils;
 import computing.project.wififiletransfer.common.Constants;
+import computing.project.wififiletransfer.common.Curve25519Helper;
 import computing.project.wififiletransfer.common.Md5Util;
 import computing.project.wififiletransfer.common.OnTransferChangeListener;
 import computing.project.wififiletransfer.common.SpeedMonitor;
@@ -38,6 +40,7 @@ public class FileSenderTask extends PauseableRunnable {
     private ObjectOutputStream objectOutputStream;
     private InputStream inputStream;
     private ObjectInputStream objectInputStream;
+    private DataInputStream dataInputStream;
     private RandomAccessFile fileInputStream;
     private SpeedMonitor monitor;
 
@@ -66,14 +69,24 @@ public class FileSenderTask extends PauseableRunnable {
             socket.bind(null);
             socket.connect(new InetSocketAddress(ipAddress, Constants.PORT), 10000);
             outputStream = socket.getOutputStream();
+            inputStream = socket.getInputStream();
+
+            // 等待接收端先发送 DH 公钥
+            byte[] serverPublicKey = new byte[Curve25519Helper.KEY_BYTE_SIZE];
+            dataInputStream = new DataInputStream(inputStream);
+            dataInputStream.readFully(serverPublicKey);
+            // 发送自己的 DH 公钥
+            Curve25519Helper dh = new Curve25519Helper();
+            outputStream.write(dh.getPublicKey());
+            // 计算 Shared secret 并作为 AES key
+            SecretKey aesKey = AESUtils.generateAESKey(dh.getSharedSecret(serverPublicKey));
+
+            // 发送 fileTransfer
             objectOutputStream = new ObjectOutputStream(outputStream);
             objectOutputStream.writeObject(fileTransfer);
 
-            // 等待接收端的回复
+            // 等待接收来自接收端的 progress 值，如果 EOF 则表示接收方拒绝
             listener.onReceiveFileTransfer(fileTransfer);
-
-            // 接受来自接收端的 progress 值
-            inputStream = socket.getInputStream();
             objectInputStream = new ObjectInputStream(inputStream);
             try {
                 Long receivedProgress = (Long) objectInputStream.readObject();
@@ -82,19 +95,19 @@ public class FileSenderTask extends PauseableRunnable {
                 throw new Exception("Transfer is rejected by receiver");
             }
 
-            // 使用 RandomAccessFile 类，并调用 .seek(progress) 指定续传的位置
+            // 使用 RandomAccessFile 类，并调用 seek(progress) 指定续传的位置
             fileInputStream = new RandomAccessFile(new File(fileTransfer.getFilePath()), "r");
             fileInputStream.seek(fileTransfer.getProgress());
 
+            // 开始传输
             listener.onStartTransfer(fileTransfer);
             monitor = new SpeedMonitor(fileTransfer, listener);
             monitor.start();
             byte[] buffer = new byte[Constants.TRANSFER_BUFFER_SIZE];
             int size;
-            SecretKey key = AESUtils.generateAESKey("abcdefghijklmnopqrstuvwxyz012345");
             while ((!Thread.currentThread().isInterrupted()) && ((size = fileInputStream.read(buffer)) != -1)) {
                 if (suspended) tryResume();
-                byte[] cipherText = AESUtils.encrypt(buffer, 0, size, key);
+                byte[] cipherText = AESUtils.encrypt(buffer, 0, size, aesKey);
 
                 // 先将 cipherText 的长度发送给接收端，再发送 cipherText 的内容
                 objectOutputStream.writeObject(cipherText.length);
@@ -106,7 +119,7 @@ public class FileSenderTask extends PauseableRunnable {
                 throw new InterruptedException();
             }
             // 发送结束信号给接收端
-            objectOutputStream.writeObject((int)0);
+            objectOutputStream.writeObject(0);
             Log.i(TAG, "文件发送成功");
             monitor.stop();
             listener.onTransferSucceed(fileTransfer);
@@ -128,15 +141,11 @@ public class FileSenderTask extends PauseableRunnable {
             monitor.stop();
         }
         closeStream(objectOutputStream);
-        objectOutputStream = null;
         closeStream(outputStream);
-        outputStream = null;
         closeStream(objectInputStream);
-        objectInputStream = null;
+        closeStream(dataInputStream);
         closeStream(inputStream);
-        inputStream = null;
         closeStream(fileInputStream);
-        fileInputStream = null;
         if (socket != null && !socket.isClosed()) {
             try {
                 socket.close();

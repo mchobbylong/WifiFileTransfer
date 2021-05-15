@@ -37,4 +37,5 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     implementation 'com.zhihu.android:matisse:0.5.3-beta3'
     implementation 'me.rosuh:AndroidFilePicker:0.7.1-x'
+    implementation 'org.whispersystems:curve25519-android:0.5.0'
 }

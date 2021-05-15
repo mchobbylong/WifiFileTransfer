@@ -76,4 +76,8 @@ public class AESUtils {
         return new SecretKeySpec(passphrase.getBytes(DEFAULT_CHARSET), KEY_ALGORITHM);
     }
 
+    public static SecretKey generateAESKey(byte[] rawBytes) {
+        return new SecretKeySpec(rawBytes, KEY_ALGORITHM);
+    }
+
 }

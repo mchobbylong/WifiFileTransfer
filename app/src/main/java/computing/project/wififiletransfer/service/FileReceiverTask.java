@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.DataInputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.Socket;
@@ -18,6 +19,7 @@ import java.net.Socket;
 import javax.crypto.SecretKey;
 
 import computing.project.wififiletransfer.common.AESUtils;
+import computing.project.wififiletransfer.common.Curve25519Helper;
 import computing.project.wififiletransfer.common.Md5Util;
 import computing.project.wififiletransfer.common.OnTransferChangeListener;
 import computing.project.wififiletransfer.common.SpeedMonitor;
@@ -35,6 +37,7 @@ public class FileReceiverTask extends PauseableRunnable {
     private OutputStream outputStream;
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
+    private DataInputStream dataInputStream;
     private RandomAccessFile fileOutputStream;
     private SpeedMonitor monitor;
     private FileTransferRecorder recorder;
@@ -51,7 +54,19 @@ public class FileReceiverTask extends PauseableRunnable {
         File file = null;
         Exception exception = null;
         try {
+            outputStream = client.getOutputStream();
+
+            // 先发送自己的 DH 公钥给发送端
+            Curve25519Helper dh = new Curve25519Helper();
+            outputStream.write(dh.getPublicKey());
+            // 然后接收发送端的 DH 公钥
             inputStream = client.getInputStream();
+            dataInputStream = new DataInputStream(inputStream);
+            byte[] clientPublicKey = new byte[Curve25519Helper.KEY_BYTE_SIZE];
+            dataInputStream.readFully(clientPublicKey);
+            // 计算 Shared secret 并作为 AES key
+            SecretKey aesKey = AESUtils.generateAESKey(dh.getSharedSecret(clientPublicKey));
+
             objectInputStream = new ObjectInputStream(inputStream);
             fileTransfer = (FileTransfer) objectInputStream.readObject();
             Log.i(TAG, "待接收的文件：" + fileTransfer);
@@ -81,20 +96,19 @@ public class FileReceiverTask extends PauseableRunnable {
             }
 
             // 将 progress 通过 socket 回传给发送端
-            outputStream = client.getOutputStream();
             objectOutputStream = new ObjectOutputStream(outputStream);
             objectOutputStream.writeObject(fileTransfer.getProgress());
 
+            // 恢复续传进度
             file = new File(fileTransfer.getFilePath());
             fileOutputStream = new RandomAccessFile(file, "rwd");
             fileOutputStream.seek(fileTransfer.getProgress());
 
+            // 开始传输
             listener.onStartTransfer(fileTransfer);
             monitor = new SpeedMonitor(fileTransfer, listener);
             monitor.start();
-
             int size, received;
-            SecretKey key = AESUtils.generateAESKey("abcdefghijklmnopqrstuvwxyz012345");
             Integer cipherTextSize = (Integer) objectInputStream.readObject();
             while (cipherTextSize > 0) {
                 // Log.d(TAG, "Current cipherTextSize: " + cipherTextSize);
@@ -110,7 +124,7 @@ public class FileReceiverTask extends PauseableRunnable {
                     throw new InterruptedException("File transfer is cancelled");
                 if (size < cipherTextSize)
                     throw new Exception("File transfer is cancelled by sender");
-                byte[] plainContent = AESUtils.decrypt(buffer, cipherTextSize, key);
+                byte[] plainContent = AESUtils.decrypt(buffer, cipherTextSize, aesKey);
                 fileOutputStream.write(plainContent);
                 fileTransfer.setProgress(fileTransfer.getProgress() + plainContent.length);
                 recorder.update(fileTransfer);
@@ -156,15 +170,11 @@ public class FileReceiverTask extends PauseableRunnable {
             monitor.stop();
         }
         closeStream(objectInputStream);
-        objectInputStream = null;
+        closeStream(dataInputStream);
         closeStream(inputStream);
-        inputStream = null;
         closeStream(objectOutputStream);
-        objectOutputStream = null;
         closeStream(outputStream);
-        outputStream = null;
         closeStream(fileOutputStream);
-        fileOutputStream = null;
         if (client != null && !client.isClosed()) {
             try {
                 client.close();
