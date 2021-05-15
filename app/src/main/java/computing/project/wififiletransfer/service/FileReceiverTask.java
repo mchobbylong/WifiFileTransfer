@@ -96,9 +96,10 @@ public class FileReceiverTask extends PauseableRunnable {
             int size, received;
             SecretKey key = AESUtils.generateAESKey("abcdefghijklmnopqrstuvwxyz012345");
             Integer cipherTextSize = (Integer) objectInputStream.readObject();
-            byte[] buffer = new byte[cipherTextSize];
             while (cipherTextSize > 0) {
                 // Log.d(TAG, "Current cipherTextSize: " + cipherTextSize);
+                byte[] buffer = new byte[cipherTextSize];
+                // 接收指定量的字节作为 cipherText
                 size = 0;
                 while (!Thread.currentThread().isInterrupted() && size < cipherTextSize && (received = inputStream.read(buffer, size, cipherTextSize - size)) != -1) {
                     if (suspended) tryResume();
@@ -110,10 +111,10 @@ public class FileReceiverTask extends PauseableRunnable {
                 if (size < cipherTextSize)
                     throw new Exception("File transfer is cancelled by sender");
                 byte[] plainContent = AESUtils.decrypt(buffer, cipherTextSize, key);
-                fileOutputStream.write(plainContent, 0, plainContent.length);
+                fileOutputStream.write(plainContent);
                 fileTransfer.setProgress(fileTransfer.getProgress() + plainContent.length);
                 recorder.update(fileTransfer);
-
+                // 接收新的 cipherTextSize
                 cipherTextSize = (Integer) objectInputStream.readObject();
             }
             if (fileTransfer.getProgress() < fileTransfer.getFileSize()) {
