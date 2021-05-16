@@ -22,6 +22,7 @@ import computing.project.wififiletransfer.common.AESUtils;
 import computing.project.wififiletransfer.common.Curve25519Helper;
 import computing.project.wififiletransfer.common.Md5Util;
 import computing.project.wififiletransfer.common.OnTransferChangeListener;
+import computing.project.wififiletransfer.common.RSAHelper;
 import computing.project.wififiletransfer.common.SpeedMonitor;
 import computing.project.wififiletransfer.model.FileTransfer;
 import computing.project.wififiletransfer.model.FileTransferRecorder;
@@ -58,7 +59,14 @@ public class FileReceiverTask extends PauseableRunnable {
 
             // 先发送自己的 DH 公钥给发送端
             Curve25519Helper dh = new Curve25519Helper();
-            outputStream.write(dh.getPublicKey());
+            byte[] publicKey = dh.getPublicKey();
+            outputStream.write(publicKey);
+            // 给自己的公钥签名，并连同签名用的 RSA 公钥一起发过去
+            RSAHelper rsaHelper = new RSAHelper();
+            byte[] composedSignature = rsaHelper.sign(publicKey);
+            objectOutputStream = new ObjectOutputStream(outputStream);
+            objectOutputStream.writeObject(composedSignature.length);
+            outputStream.write(composedSignature);
             // 然后接收发送端的 DH 公钥
             inputStream = client.getInputStream();
             dataInputStream = new DataInputStream(inputStream);
@@ -96,7 +104,6 @@ public class FileReceiverTask extends PauseableRunnable {
             }
 
             // 将 progress 通过 socket 回传给发送端
-            objectOutputStream = new ObjectOutputStream(outputStream);
             objectOutputStream.writeObject(fileTransfer.getProgress());
 
             // 恢复续传进度
@@ -109,7 +116,7 @@ public class FileReceiverTask extends PauseableRunnable {
             monitor = new SpeedMonitor(fileTransfer, listener);
             monitor.start();
             int size, received;
-            Integer cipherTextSize = (Integer) objectInputStream.readObject();
+            int cipherTextSize = (Integer) objectInputStream.readObject();
             while (cipherTextSize > 0) {
                 // Log.d(TAG, "Current cipherTextSize: " + cipherTextSize);
                 byte[] buffer = new byte[cipherTextSize];

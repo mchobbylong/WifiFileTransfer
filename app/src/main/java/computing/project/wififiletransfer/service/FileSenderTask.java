@@ -25,6 +25,7 @@ import computing.project.wififiletransfer.common.Constants;
 import computing.project.wififiletransfer.common.Curve25519Helper;
 import computing.project.wififiletransfer.common.Md5Util;
 import computing.project.wififiletransfer.common.OnTransferChangeListener;
+import computing.project.wififiletransfer.common.RSAHelper;
 import computing.project.wififiletransfer.common.SpeedMonitor;
 import computing.project.wififiletransfer.model.FileTransfer;
 
@@ -68,15 +69,23 @@ public class FileSenderTask extends PauseableRunnable {
             socket = new Socket();
             socket.bind(null);
             socket.connect(new InetSocketAddress(ipAddress, Constants.PORT), 10000);
-            outputStream = socket.getOutputStream();
             inputStream = socket.getInputStream();
 
             // 等待接收端先发送 DH 公钥
             byte[] serverPublicKey = new byte[Curve25519Helper.KEY_BYTE_SIZE];
             dataInputStream = new DataInputStream(inputStream);
             dataInputStream.readFully(serverPublicKey);
+            // 然后接收 DH 公钥的签名数据，并验证公钥的真实性
+            objectInputStream = new ObjectInputStream(inputStream);
+            int signatureSize = (Integer) objectInputStream.readObject();
+            byte[] composedSignature = new byte[signatureSize];
+            dataInputStream.readFully(composedSignature);
+            if (!RSAHelper.verify(serverPublicKey, composedSignature)) {
+                throw new Exception("Transferred data has been tampered with by a MITM.");
+            }
             // 发送自己的 DH 公钥
             Curve25519Helper dh = new Curve25519Helper();
+            outputStream = socket.getOutputStream();
             outputStream.write(dh.getPublicKey());
             // 计算 Shared secret 并作为 AES key
             SecretKey aesKey = AESUtils.generateAESKey(dh.getSharedSecret(serverPublicKey));
@@ -87,9 +96,8 @@ public class FileSenderTask extends PauseableRunnable {
 
             // 等待接收来自接收端的 progress 值，如果 EOF 则表示接收方拒绝
             listener.onReceiveFileTransfer(fileTransfer);
-            objectInputStream = new ObjectInputStream(inputStream);
             try {
-                Long receivedProgress = (Long) objectInputStream.readObject();
+                long receivedProgress = (Long) objectInputStream.readObject();
                 fileTransfer.setProgress(receivedProgress);
             } catch (EOFException e) {
                 throw new Exception("Transfer is rejected by receiver");
